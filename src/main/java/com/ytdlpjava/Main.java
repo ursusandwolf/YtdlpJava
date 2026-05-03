@@ -25,17 +25,18 @@ public class Main {
         String lang = main.lang;
 
         if (videoUrl == null) {
-            Scanner scanner = new Scanner(System.in);
-            System.out.print("🔗 Введите ссылку на YouTube-видео: ");
-            videoUrl = scanner.nextLine().trim();
-            if (videoUrl.isEmpty()) {
-                System.err.println("❌ Ссылка не указана.");
-                System.exit(1);
-            }
+            try (Scanner scanner = new Scanner(System.in)) {
+                System.out.print("🔗 Введите ссылку на YouTube-видео: ");
+                videoUrl = scanner.nextLine().trim();
+                if (videoUrl.isEmpty()) {
+                    System.err.println("❌ Ссылка не указана.");
+                    System.exit(1);
+                }
 
-            System.out.print("🌍 Укажите язык субтитров (по умолчанию: " + lang + "): ");
-            String langInput = scanner.nextLine().trim().toLowerCase();
-            if (!langInput.isEmpty()) lang = langInput;
+                System.out.print("🌍 Укажите язык субтитров (по умолчанию: " + lang + "): ");
+                String langInput = scanner.nextLine().trim().toLowerCase();
+                if (!langInput.isEmpty()) lang = langInput;
+            }
         }
 
         YtdlManager manager = new YtdlManager(new YoutubeDownloader(), new SubtitleCleaner(), new FilenameGenerator());

@@ -42,7 +42,8 @@ public class FilenameGenerator {
 
     private String sanitizeFilename(String name) {
         name = ILLEGAL_CHARS.matcher(name).replaceAll("");
-        return WHITESPACE.matcher(name.trim()).replaceAll(" ");
+        String sanitized = WHITESPACE.matcher(name.trim()).replaceAll(" ");
+        return sanitized.isEmpty() ? "video" : sanitized;
     }
 
     private record DateInfo(Optional<String> rawDate, Optional<String> normalizedDate) {}
