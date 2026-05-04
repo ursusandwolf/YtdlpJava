@@ -8,13 +8,25 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class YtdlManager {
     private final VideoTask task;
+    private final Downloader downloader;
 
     public void process(String url, Path outputDir) {
         try {
-            task.execute(url, outputDir);
+            List<String> urls = downloader.getPlaylistUrls(url);
+            log.info("Found {} item(s) to process", urls.size());
+            
+            for (int i = 0; i < urls.size(); i++) {
+                String currentUrl = urls.get(i);
+                log.info("Processing [{}/{}]: {}", i + 1, urls.size(), currentUrl);
+                try {
+                    task.execute(currentUrl, outputDir);
+                } catch (Exception e) {
+                    log.error("Failed to process item {}: {}", currentUrl, e.getMessage());
+                    // Continue with next item in playlist instead of failing entirely
+                }
+            }
         } catch (Exception e) {
-            log.error("Failed to process video: {}", e.getMessage());
-            // We don't call System.exit here, let the caller decide
+            log.error("Failed to fetch playlist or process: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

@@ -18,7 +18,7 @@ public class Main {
     @Parameter(names = {"-o", "--output_dir"}, description = "Папка для сохранения результата")
     private String outputDir = "output";
 
-    @Parameter(names = {"-t", "--type"}, description = "Тип загрузки: sub (субтитры), audio (аудио), screenshot (скриншоты)")
+    @Parameter(names = {"-t", "--type"}, description = "Тип загрузки: sub (субтитры), audio (аудио), screenshot (скриншоты), video (видео)")
     private String type = "sub";
 
     @Parameter(names = {"--format"}, description = "Формат аудио (opus, mp3, m4a)")
@@ -50,20 +50,24 @@ public class Main {
 
         FilenameProvider filenameProvider = new FilenameGenerator();
         VideoTask task;
+        Downloader downloader;
 
         if ("audio".equalsIgnoreCase(main.type)) {
-            Downloader downloader = new AudioDownloader(main.audioFormat, main.audioQuality);
+            downloader = new AudioDownloader(main.audioFormat, main.audioQuality);
             task = new AudioTask(downloader, filenameProvider);
+        } else if ("video".equalsIgnoreCase(main.type)) {
+            downloader = new YoutubeDownloader(main.lang, true);
+            task = new VideoDownloadTask(downloader, filenameProvider);
         } else if ("screenshot".equalsIgnoreCase(main.type)) {
-            Downloader downloader = new YoutubeDownloader(main.lang, true);
+            downloader = new YoutubeDownloader(main.lang, true);
             task = new ScreenshotTask(downloader, filenameProvider, main.interval);
         } else {
-            Downloader downloader = new YoutubeDownloader(main.lang);
+            downloader = new YoutubeDownloader(main.lang);
             ContentProcessor processor = new SubtitleCleaner(300);
             task = new SubtitleTask(downloader, processor, filenameProvider);
         }
 
-        YtdlManager manager = new YtdlManager(task);
+        YtdlManager manager = new YtdlManager(task, downloader);
         try {
             manager.process(videoUrl, Path.of(main.outputDir));
         } catch (Exception e) {

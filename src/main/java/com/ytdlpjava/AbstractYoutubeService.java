@@ -40,6 +40,13 @@ public abstract class AbstractYoutubeService implements Downloader {
         }
     }
 
+    public List<String> getPlaylistUrls(String url) throws IOException, InterruptedException {
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--flat-playlist", "--print", "url", url);
+        String output = runCommand(command, "Failed to fetch playlist URLs").trim();
+        if (output.isEmpty()) return List.of(url);
+        return List.of(output.split("\\n"));
+    }
+
     protected String runCommand(List<String> command, String errorMessage) throws IOException, InterruptedException {
         Process process = new ProcessBuilder(command)
                 .redirectErrorStream(true)
