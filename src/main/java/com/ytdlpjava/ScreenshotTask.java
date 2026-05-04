@@ -20,36 +20,44 @@ public class ScreenshotTask implements VideoTask {
     @Override
     public void execute(String url, Path outputDir) throws Exception {
         String title = downloader.getTitle(url);
-        long duration = downloader.getDuration(url);
-        String streamUrl = downloader.getStreamUrl(url);
         String basename = filenameProvider.buildFilename(title, 80);
 
         if (!Files.exists(outputDir)) {
             Files.createDirectories(outputDir);
         }
 
-        log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
-
-        for (long ts = 0; ts < duration; ts += intervalSeconds) {
-            String timestampStr = formatTimestamp(ts);
-            Path outputPath = outputDir.resolve(String.format("%s_%05d.jpg", basename, ts));
-            
-            log.debug("Capturing frame at {} -> {}", timestampStr, outputPath.getFileName());
-            
-            List<String> command = List.of(
-                "ffmpeg",
-                "-ss", String.valueOf(ts),
-                "-i", streamUrl,
-                "-frames:v", "1",
-                "-q:v", "2",
-                "-y",
-                outputPath.toString()
-            );
-
-            runFfmpeg(command);
-        }
+        log.info("Downloading video for reliable screenshot extraction: {}", title);
+        Path videoFile = downloader.download(url, basename);
         
-        log.info("✅ Screenshot capture complete.");
+        try {
+            long duration = downloader.getDuration(url);
+            log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
+
+            for (long ts = 0; ts < duration; ts += intervalSeconds) {
+                String timestampStr = formatTimestamp(ts);
+                Path outputPath = outputDir.resolve(String.format("%s_%05d.jpg", basename, ts));
+                
+                log.debug("Capturing frame at {} -> {}", timestampStr, outputPath.getFileName());
+                
+                List<String> command = List.of(
+                    "ffmpeg",
+                    "-ss", String.valueOf(ts),
+                    "-i", videoFile.toString(),
+                    "-frames:v", "1",
+                    "-q:v", "2",
+                    "-y",
+                    outputPath.toString()
+                );
+
+                runFfmpeg(command);
+            }
+            log.info("✅ Screenshot capture complete.");
+        } finally {
+            if (Files.exists(videoFile)) {
+                Files.delete(videoFile);
+                log.debug("Deleted temporary video file: {}", videoFile);
+            }
+        }
     }
 
     private void runFfmpeg(List<String> command) throws IOException, InterruptedException {

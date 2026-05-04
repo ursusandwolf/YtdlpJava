@@ -55,7 +55,7 @@ public class Main {
             Downloader downloader = new AudioDownloader(main.audioFormat, main.audioQuality);
             task = new AudioTask(downloader, filenameProvider);
         } else if ("screenshot".equalsIgnoreCase(main.type)) {
-            Downloader downloader = new YoutubeDownloader(main.lang);
+            Downloader downloader = new YoutubeDownloader(main.lang, true);
             task = new ScreenshotTask(downloader, filenameProvider, main.interval);
         } else {
             Downloader downloader = new YoutubeDownloader(main.lang);

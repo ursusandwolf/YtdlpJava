@@ -11,23 +11,32 @@ public abstract class AbstractYoutubeService implements Downloader {
 
     @Override
     public String getTitle(String videoUrl) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--get-title", videoUrl);
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--print", "title", videoUrl);
         return runCommand(command, "Failed to fetch video title").trim();
     }
 
     public String getStreamUrl(String videoUrl) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "-f", "bestvideo[ext=mp4]/best", "-g", videoUrl);
+        // Try to get a single file URL (mp4) which is better for random access seeking
+        List<String> command = List.of("yt-dlp", "--no-warnings", "-f", "bestvideo[ext=mp4]/best[ext=mp4]/best", "-g", videoUrl);
         return runCommand(command, "Failed to fetch stream URL").trim();
     }
 
     public long getDuration(String videoUrl) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--get-duration", "--print", "duration", videoUrl);
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--print", "%(duration)j", videoUrl);
         String output = runCommand(command, "Failed to fetch video duration").trim();
         try {
-            return (long) Double.parseDouble(output);
+            return Long.parseLong(output);
         } catch (NumberFormatException e) {
-            log.warn("Could not parse duration '{}', defaulting to 0", output);
-            return 0;
+            log.warn("Could not parse duration '{}', trying fallback", output);
+            // Fallback: try to get it without JSON format
+            List<String> fallbackCmd = List.of("yt-dlp", "--no-warnings", "--print", "duration", videoUrl);
+            String fallbackOutput = runCommand(fallbackCmd, "Failed to fetch duration fallback").trim();
+            try {
+                return (long) Double.parseDouble(fallbackOutput);
+            } catch (NumberFormatException e2) {
+                log.error("Total failure parsing duration: {}", fallbackOutput);
+                return 0;
+            }
         }
     }
 
