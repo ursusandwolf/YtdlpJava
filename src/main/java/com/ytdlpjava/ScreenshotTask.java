@@ -2,12 +2,9 @@ package com.ytdlpjava;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -33,11 +30,11 @@ public class ScreenshotTask implements VideoTask {
             long duration = downloader.getDuration(url);
             log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
 
+            ProcessExecutor executor = new ProcessExecutor(); // In a real app, this should be injected
             for (long ts = 0; ts < duration; ts += intervalSeconds) {
-                String timestampStr = formatTimestamp(ts);
                 Path outputPath = outputDir.resolve(String.format("%s_%05d.jpg", basename, ts));
                 
-                log.debug("Capturing frame at {} -> {}", timestampStr, outputPath.getFileName());
+                log.debug("Capturing frame at {} -> {}", ts, outputPath.getFileName());
                 
                 List<String> command = List.of(
                     "ffmpeg",
@@ -49,7 +46,7 @@ public class ScreenshotTask implements VideoTask {
                     outputPath.toString()
                 );
 
-                runFfmpeg(command);
+                executor.run(command, "ffmpeg extraction failed");
             }
             log.info("✅ Screenshot capture complete.");
         } finally {
@@ -58,28 +55,5 @@ public class ScreenshotTask implements VideoTask {
                 log.debug("Deleted temporary video file: {}", videoFile);
             }
         }
-    }
-
-    private void runFfmpeg(List<String> command) throws IOException, InterruptedException {
-        Process process = new ProcessBuilder(command)
-                .redirectErrorStream(true)
-                .start();
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                log.trace("ffmpeg: {}", line);
-            }
-        }
-
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            log.error("ffmpeg failed for command: {}", command);
-            throw new RuntimeException("ffmpeg extraction failed with exit code " + exitCode);
-        }
-    }
-
-    private String formatTimestamp(long seconds) {
-        return String.format("%02d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
     }
 }

@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-05-04
+
+### Added
+- **ProcessExecutor**: Introduced a centralized command execution system with support for timeouts (default 30 min) and improved logging.
+- **Specialized Downloaders**: Split `YoutubeDownloader` into `VideoDownloader` and `SubtitleDownloader` for better SRP compliance.
+
+### Changed
+- **Reliable File Resolution**: Switched from unreliable directory listing (`Files.list(".")`) to using `yt-dlp`'s `--print after_move:filepath` to accurately locate downloaded files.
+- **Main Refactoring**: Modernized task initialization in `Main.java` using Java 21 `switch` expressions and factory methods.
+
+### Fixed
+- Potential race conditions when downloading multiple files simultaneously in the same directory.
+- Missing imports and minor compilation issues after refactoring.
+
 ## [1.2.0] - 2026-05-04
 
 ### Added

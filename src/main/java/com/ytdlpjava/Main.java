@@ -48,24 +48,11 @@ public class Main {
             }
         }
 
+        ProcessExecutor executor = new ProcessExecutor();
         FilenameProvider filenameProvider = new FilenameGenerator();
-        VideoTask task;
-        Downloader downloader;
-
-        if ("audio".equalsIgnoreCase(main.type)) {
-            downloader = new AudioDownloader(main.audioFormat, main.audioQuality);
-            task = new AudioTask(downloader, filenameProvider);
-        } else if ("video".equalsIgnoreCase(main.type)) {
-            downloader = new YoutubeDownloader(main.lang, true);
-            task = new VideoDownloadTask(downloader, filenameProvider);
-        } else if ("screenshot".equalsIgnoreCase(main.type)) {
-            downloader = new YoutubeDownloader(main.lang, true);
-            task = new ScreenshotTask(downloader, filenameProvider, main.interval);
-        } else {
-            downloader = new YoutubeDownloader(main.lang);
-            ContentProcessor processor = new SubtitleCleaner(300);
-            task = new SubtitleTask(downloader, processor, filenameProvider);
-        }
+        
+        Downloader downloader = createDownloader(main, executor);
+        VideoTask task = createTask(main, downloader, filenameProvider);
 
         YtdlManager manager = new YtdlManager(task, downloader);
         try {
@@ -74,5 +61,26 @@ public class Main {
             log.error("Process failed: {}", e.getMessage());
             System.exit(1);
         }
+    }
+
+    private static Downloader createDownloader(Main main, ProcessExecutor executor) {
+        return switch (main.type.toLowerCase()) {
+            case "audio" -> new AudioDownloader(executor, main.audioFormat, main.audioQuality);
+            case "sub" -> new SubtitleDownloader(executor, main.lang);
+            default -> new VideoDownloader(executor);
+        };
+    }
+
+    private static VideoTask createTask(Main main, Downloader downloader, FilenameProvider filenameProvider) {
+        return switch (main.type.toLowerCase()) {
+            case "audio" -> new AudioTask(downloader, filenameProvider);
+            case "video" -> new VideoDownloadTask(downloader, filenameProvider);
+            case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, main.interval);
+            case "sub" -> {
+                ContentProcessor processor = new SubtitleCleaner(300);
+                yield new SubtitleTask(downloader, processor, filenameProvider);
+            }
+            default -> throw new IllegalArgumentException("Unknown type: " + main.type);
+        };
     }
 }

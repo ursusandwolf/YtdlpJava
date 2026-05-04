@@ -2,6 +2,7 @@ package com.ytdlpjava;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 public interface Downloader {
     Path download(String url, String outputBasename) throws IOException, InterruptedException;
