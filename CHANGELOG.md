@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-05-04
+
+### Added
+- **Playlist Support**: The application now automatically detects playlists and processes all contained videos sequentially.
+- **Video Download Mode**: Added a new `-t video` task to download and save video files (720p max for efficiency).
+- **Resilient Processing**: Errors during playlist processing no longer stop the entire execution; the tool proceeds to the next item.
+
 ## [1.1.0] - 2026-05-04
 
 ### Added
