@@ -8,11 +8,13 @@ All notable changes to this project will be documented in this file.
 - **Architectural Refactoring**: Introduced interfaces for core components (`Downloader`, `ContentProcessor`, `FilenameProvider`, `VideoTask`) to follow the Dependency Inversion Principle (DIP).
 - **Strategy Pattern**: Implemented a task-based architecture to allow different processing logic for different types of downloads.
 - **Audio Download Support**: Added `AudioDownloader` and `AudioTask` to support extracting audio from YouTube videos.
+- **Screenshot Capture**: Added `ScreenshotTask` and enhanced `AbstractYoutubeService` to extract periodic screenshots using `ffmpeg` fast-seeking from stream URLs.
 - **Logging**: Integrated **SLF4J** and **Logback** for structured logging, replacing manual `System.out.println` calls.
 - **CLI Enhancements**: Added new parameters to `Main.java` using JCommander:
-  - `-t`, `--type`: Specify download type (`sub` or `audio`).
+  - `-t`, `--type`: Specify download type (`sub`, `audio`, or `screenshot`).
   - `--format`: Set audio format (opus, mp3, m4a).
   - `--quality`: Set audio quality (0-9).
+  - `-i`, `--interval`: Set screenshot frequency in seconds.
 - **Lombok Integration**: Applied Lombok annotations (`@Slf4j`, `@RequiredArgsConstructor`) across the project to reduce boilerplate code.
 
 ### Changed

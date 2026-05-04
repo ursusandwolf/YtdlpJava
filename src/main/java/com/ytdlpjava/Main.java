@@ -18,7 +18,7 @@ public class Main {
     @Parameter(names = {"-o", "--output_dir"}, description = "Папка для сохранения результата")
     private String outputDir = "output";
 
-    @Parameter(names = {"-t", "--type"}, description = "Тип загрузки: sub (субтитры), audio (аудио)")
+    @Parameter(names = {"-t", "--type"}, description = "Тип загрузки: sub (субтитры), audio (аудио), screenshot (скриншоты)")
     private String type = "sub";
 
     @Parameter(names = {"--format"}, description = "Формат аудио (opus, mp3, m4a)")
@@ -26,6 +26,9 @@ public class Main {
 
     @Parameter(names = {"--quality"}, description = "Качество аудио (0 - лучшее, 9 - худшее)")
     private String audioQuality = "0";
+
+    @Parameter(names = {"-i", "--interval"}, description = "Интервал между скриншотами в секундах (по умолчанию: 60)")
+    private int interval = 60;
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -51,6 +54,9 @@ public class Main {
         if ("audio".equalsIgnoreCase(main.type)) {
             Downloader downloader = new AudioDownloader(main.audioFormat, main.audioQuality);
             task = new AudioTask(downloader, filenameProvider);
+        } else if ("screenshot".equalsIgnoreCase(main.type)) {
+            Downloader downloader = new YoutubeDownloader(main.lang);
+            task = new ScreenshotTask(downloader, filenameProvider, main.interval);
         } else {
             Downloader downloader = new YoutubeDownloader(main.lang);
             ContentProcessor processor = new SubtitleCleaner(300);

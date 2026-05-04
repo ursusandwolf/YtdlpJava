@@ -15,6 +15,22 @@ public abstract class AbstractYoutubeService implements Downloader {
         return runCommand(command, "Failed to fetch video title").trim();
     }
 
+    public String getStreamUrl(String videoUrl) throws IOException, InterruptedException {
+        List<String> command = List.of("yt-dlp", "-f", "bestvideo[ext=mp4]/best", "-g", videoUrl);
+        return runCommand(command, "Failed to fetch stream URL").trim();
+    }
+
+    public long getDuration(String videoUrl) throws IOException, InterruptedException {
+        List<String> command = List.of("yt-dlp", "--get-duration", "--print", "duration", videoUrl);
+        String output = runCommand(command, "Failed to fetch video duration").trim();
+        try {
+            return (long) Double.parseDouble(output);
+        } catch (NumberFormatException e) {
+            log.warn("Could not parse duration '{}', defaulting to 0", output);
+            return 0;
+        }
+    }
+
     protected String runCommand(List<String> command, String errorMessage) throws IOException, InterruptedException {
         Process process = new ProcessBuilder(command)
                 .redirectErrorStream(true)
