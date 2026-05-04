@@ -1,5 +1,6 @@
 package com.ytdlpjava;
 
+import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,12 +11,21 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SubtitleCleaner {
+@Slf4j
+public class SubtitleCleaner implements ContentProcessor {
     private static final Pattern BLOCK_PATTERN = Pattern.compile("(\\d{2}:\\d{2}:\\d{2}\\.\\d{3}) --> .*?\\n(.*?)(?=\\n\\n|\\Z)", Pattern.DOTALL);
     private static final Pattern HTML_TAGS = Pattern.compile("<[^>]+>");
     private static final Pattern SPEAKER_TAGS = Pattern.compile("\\[.*?\\]");
 
-    public String cleanVttToText(Path vttPath, int minTimestampGapSeconds) throws IOException {
+    private final int minTimestampGapSeconds;
+
+    public SubtitleCleaner(int minTimestampGapSeconds) {
+        this.minTimestampGapSeconds = minTimestampGapSeconds;
+    }
+
+    @Override
+    public String process(Path vttPath) throws IOException {
+        log.info("Cleaning subtitles: {}", vttPath.getFileName());
         String rawText = Files.readString(vttPath, StandardCharsets.UTF_8);
         List<String> cleanedLines = new ArrayList<>();
         Duration lastTimestamp = null;

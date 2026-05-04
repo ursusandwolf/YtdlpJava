@@ -1,5 +1,6 @@
 package com.ytdlpjava;
 
+import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -8,7 +9,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FilenameGenerator {
+@Slf4j
+public class FilenameGenerator implements FilenameProvider {
     private static final Pattern ILLEGAL_CHARS = Pattern.compile("[\\\\/*?:\"<>|]");
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
@@ -24,6 +26,7 @@ public class FilenameGenerator {
                     DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
     };
 
+    @Override
     public String buildFilename(String title, int maxLength) {
         String sanitizedTitle = sanitizeFilename(title);
         var dateInfo = extractDate(sanitizedTitle);
