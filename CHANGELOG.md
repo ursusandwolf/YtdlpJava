@@ -1,0 +1,35 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [1.1.0] - 2026-05-04
+
+### Added
+- **Architectural Refactoring**: Introduced interfaces for core components (`Downloader`, `ContentProcessor`, `FilenameProvider`, `VideoTask`) to follow the Dependency Inversion Principle (DIP).
+- **Strategy Pattern**: Implemented a task-based architecture to allow different processing logic for different types of downloads.
+- **Audio Download Support**: Added `AudioDownloader` and `AudioTask` to support extracting audio from YouTube videos.
+- **Logging**: Integrated **SLF4J** and **Logback** for structured logging, replacing manual `System.out.println` calls.
+- **CLI Enhancements**: Added new parameters to `Main.java` using JCommander:
+  - `-t`, `--type`: Specify download type (`sub` or `audio`).
+  - `--format`: Set audio format (opus, mp3, m4a).
+  - `--quality`: Set audio quality (0-9).
+- **Lombok Integration**: Applied Lombok annotations (`@Slf4j`, `@RequiredArgsConstructor`) across the project to reduce boilerplate code.
+
+### Changed
+- **Error Handling**: Moved `System.exit()` calls from business logic (`YtdlManager`) to the `Main` entry point.
+- **Resource Management**: Optimized process output handling in `YoutubeDownloader` to prevent potential memory issues.
+- **Package Structure**: Organized classes for better maintainability and extensibility.
+
+### Fixed
+- Restored missing date-parsing logic in `FilenameGenerator` that was lost during initial refactoring.
+- Updated `SubtitleCleanerTest` to match the new interface-based architecture.
+
+## [1.0.0] - 2026-05-03
+
+### Added
+- Initial Java port of the subtitle processing tool.
+- Support for `yt-dlp` integration.
+- VTT subtitle cleaning and formatting logic.
+- Intelligent filename generation with date extraction.
+- Maven build system.
+- Basic unit tests for core logic.
