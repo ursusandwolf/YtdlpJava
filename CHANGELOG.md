@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2026-05-05
+
+### Fixed
+- **yt-dlp URL Extraction**: Fixed a bug where `getPlaylistUrls` would return "NA" for some videos when using `--flat-playlist`. Switched to `webpage_url` and added filtering for invalid results.
+
 ## [1.3.0] - 2026-05-04
 
 ### Added
