@@ -11,7 +11,8 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - **Fixed Subtitle Path Resolution**: Resolved an issue where `SubtitleDownloader` failed to locate downloaded subtitle files.
   - Removed reliance on `yt-dlp --print after_move:filepath` for subtitles as it returns empty with `--skip-download`.
   - Implemented a search mechanism to find the `.vtt` or `.srt` file created by `yt-dlp` based on the requested language and output basename.
-- **Improved Robustness**: The application now handles cases where `yt-dlp` fails to extract individual item URLs in flat-playlist mode by processing the original URL directly.
+- **Added Interactive Language Selection**: The tool now prompts the user for a subtitle language if it's not provided via CLI parameters.
+- **Universal URL Handling**: Verified and improved support for both single videos and playlists.
 
 ## Pending Items
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.

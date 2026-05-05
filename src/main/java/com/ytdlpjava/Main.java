@@ -45,6 +45,14 @@ public class Main {
                     log.error("Ссылка не указана.");
                     System.exit(1);
                 }
+
+                if ("sub".equalsIgnoreCase(main.type)) {
+                    System.out.print("🌐 Введите язык субтитров (например, en, ru): ");
+                    String inputLang = scanner.nextLine().trim();
+                    if (!inputLang.isEmpty()) {
+                        main.lang = inputLang;
+                    }
+                }
             }
         }
 
