@@ -22,6 +22,7 @@ public class ProcessExecutor {
                 .redirectErrorStream(true)
                 .start();
 
+        String resultPath = null;
         StringBuilder output = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -29,6 +30,12 @@ public class ProcessExecutor {
                 if (!line.isBlank()) {
                     log.info(line); // Real-time progress logging
                     output.append(line).append("\n");
+                    
+                    // Path extraction: look for absolute paths or specific yt-dlp patterns
+                    String trimmedLine = line.trim();
+                    if (trimmedLine.startsWith("/") || (trimmedLine.length() > 2 && trimmedLine.charAt(1) == ':')) {
+                        resultPath = trimmedLine;
+                    }
                 }
             }
         }
@@ -45,6 +52,6 @@ public class ProcessExecutor {
             throw new RuntimeException("%s (Exit code: %d)".formatted(errorMessage, exitCode));
         }
 
-        return output.toString().trim();
+        return resultPath != null ? resultPath : output.toString().trim();
     }
 }

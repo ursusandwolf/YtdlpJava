@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - **Interactive Language Selection**: Added a prompt to ask for the subtitle language in interactive mode.
 - **Real-time Progress Tracking**: Refactored `ProcessExecutor` to log `yt-dlp` output in real-time, allowing users to see download progress, speed, and ETA directly in the console.
 - **Organized Storage**: Implemented automatic directory management. Files are now saved in type-specific folders: `txt/` for subtitles, `output/audio/` for audio, `output/video/` for video, and `output/img/` for screenshots.
+- **Robust Path Extraction**: Enhanced `ProcessExecutor` to correctly identify absolute paths in `yt-dlp` output, ignoring warnings like "File name too long".
+- **Filename Optimization**: Reduced maximum filename length to 60 characters to prevent OS-level "File name too long" errors.
 
 ## [1.3.0] - 2026-05-04
 

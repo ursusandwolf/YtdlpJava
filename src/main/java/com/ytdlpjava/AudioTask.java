@@ -15,7 +15,7 @@ public class AudioTask implements VideoTask {
     @Override
     public void execute(String url, Path outputDir) throws Exception {
         String title = downloader.getTitle(url);
-        String basename = filenameProvider.buildFilename(title, 80);
+        String basename = filenameProvider.buildFilename(title, 60);
         log.info("Downloading audio for: {}", title);
         Path downloadedFile = downloader.download(url, basename);
         log.debug("Downloaded audio file path: {}", downloadedFile);

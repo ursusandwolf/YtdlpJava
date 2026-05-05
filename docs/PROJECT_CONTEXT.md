@@ -18,6 +18,9 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - **Organized Storage Structure**:
   - Subtitles are now automatically saved to the `txt/` directory.
   - Audio, video, and screenshots are organized into `output/audio/`, `output/video/`, and `output/img/` respectively.
+- **Robust Path & Filename Handling**:
+  - Improved `ProcessExecutor` to filter out yt-dlp warnings and accurately extract absolute file paths.
+  - Reduced default filename limit to 60 characters to ensure compatibility with OS filename limits during conversion/download.
 - **Universal URL Handling**: Verified and improved support for both single videos and playlists.
 
 ## Pending Items

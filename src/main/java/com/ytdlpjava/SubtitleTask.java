@@ -15,7 +15,7 @@ public class SubtitleTask implements VideoTask {
     @Override
     public void execute(String url, Path outputDir) throws Exception {
         String title = downloader.getTitle(url);
-        String basename = filenameProvider.buildFilename(title, 80);
+        String basename = filenameProvider.buildFilename(title, 60);
         
         Path downloadedFile = downloader.download(url, basename);
         try {
