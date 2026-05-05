@@ -20,6 +20,9 @@ public class AudioDownloader extends AbstractYoutubeService {
     public Path download(String videoUrl, String outputBasename) throws IOException, InterruptedException {
         List<String> command = List.of(
                 "yt-dlp",
+                "--no-warnings",
+                "--newline",
+                "--progress",
                 "-x",
                 "--audio-format", format,
                 "--audio-quality", quality,

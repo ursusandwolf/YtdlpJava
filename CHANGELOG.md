@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 - **yt-dlp URL Extraction**: Fixed a bug where `getPlaylistUrls` would return "NA" for some videos when using `--flat-playlist`. Switched to `webpage_url` and added filtering for invalid results.
 - **Subtitle Path Resolution**: Resolved "Invalid argument" error when downloading subtitles. `SubtitleDownloader` now manually searches for the resulting subtitle file since `yt-dlp` doesn't reliably print sidecar file paths with `--skip-download`.
 - **Interactive Language Selection**: Added a prompt to ask for the subtitle language in interactive mode.
+- **Real-time Progress Tracking**: Refactored `ProcessExecutor` to log `yt-dlp` output in real-time, allowing users to see download progress, speed, and ETA directly in the console.
 
 ## [1.3.0] - 2026-05-04
 

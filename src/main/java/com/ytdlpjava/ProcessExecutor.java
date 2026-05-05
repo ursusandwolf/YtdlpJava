@@ -26,8 +26,10 @@ public class ProcessExecutor {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                log.trace("Process output: {}", line);
-                output.append(line).append("\n");
+                if (!line.isBlank()) {
+                    log.info(line); // Real-time progress logging
+                    output.append(line).append("\n");
+                }
             }
         }
 

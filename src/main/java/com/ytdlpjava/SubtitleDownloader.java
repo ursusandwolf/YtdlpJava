@@ -20,6 +20,8 @@ public class SubtitleDownloader extends AbstractYoutubeService {
         List<String> command = List.of(
                 "yt-dlp",
                 "--no-warnings",
+                "--newline",
+                "--progress",
                 "--write-auto-sub",
                 "--sub-lang", lang,
                 "--skip-download",
