@@ -30,28 +30,62 @@ public class Main {
     @Parameter(names = {"-i", "--interval"}, description = "Интервал между скриншотами в секундах (по умолчанию: 60)")
     private int interval = 60;
 
+    @Parameter(names = {"-h", "--help"}, help = true, description = "Показать справку")
+    private boolean help;
+
     public static void main(String[] args) {
         Main main = new Main();
         JCommander jc = JCommander.newBuilder().addObject(main).build();
-        jc.parse(args);
+        try {
+            jc.parse(args);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            jc.usage();
+            System.exit(1);
+        }
+
+        if (main.help) {
+            jc.usage();
+            return;
+        }
 
         String videoUrl = (main.videoUrls != null && !main.videoUrls.isEmpty()) ? main.videoUrls.get(0) : null;
 
         if (videoUrl == null) {
             try (Scanner scanner = new Scanner(System.in)) {
-                System.out.print("🔗 Введите ссылку на YouTube-видео: ");
+                System.out.println("🎬 === YouTube Downloader & Processor ===");
+                System.out.print("🔗 Введите ссылку на YouTube (видео или плейлист): ");
                 videoUrl = scanner.nextLine().trim();
                 if (videoUrl.isEmpty()) {
                     log.error("Ссылка не указана.");
                     System.exit(1);
                 }
 
+                System.out.println("\nВыберите тип задачи:");
+                System.out.println("1. Субтитры (sub)");
+                System.out.println("2. Аудио (audio)");
+                System.out.println("3. Видео (video)");
+                System.out.println("4. Скриншоты (screenshot)");
+                System.out.print("Введите номер (по умолчанию 1): ");
+                
+                String typeChoice = scanner.nextLine().trim();
+                main.type = switch (typeChoice) {
+                    case "2" -> "audio";
+                    case "3" -> "video";
+                    case "4" -> "screenshot";
+                    default -> "sub";
+                };
+
                 if ("sub".equalsIgnoreCase(main.type)) {
-                    System.out.print("🌐 Введите язык субтитров (например, en, ru): ");
+                    System.out.print("🌐 Введите язык субтитров (например, en, ru) [en]: ");
                     String inputLang = scanner.nextLine().trim();
                     if (!inputLang.isEmpty()) {
                         main.lang = inputLang;
                     }
+                } else if ("audio".equalsIgnoreCase(main.type)) {
+                    System.out.print("🎵 Введите формат (opus, mp3, m4a) [opus]: ");
+                    String fmt = scanner.nextLine().trim();
+                    if (!fmt.isEmpty()) main.audioFormat = fmt;
                 }
             }
         }
