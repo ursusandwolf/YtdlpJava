@@ -2,6 +2,7 @@ package com.ytdlpjava;
 
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -23,12 +24,18 @@ public class SubtitleDownloader extends AbstractYoutubeService {
                 "--sub-lang", lang,
                 "--skip-download",
                 "--output", outputBasename,
-                "--print", "after_move:filepath",
                 videoUrl
         );
 
         log.info("Downloading subtitles for: {}", videoUrl);
-        String filePath = executor.run(command, "Subtitle download failed");
-        return Path.of(filePath);
+        executor.run(command, "Subtitle download failed");
+
+        // yt-dlp appends .lang.ext (e.g., .en.vtt). Find the resulting file.
+        try (var files = Files.list(Path.of("."))) {
+            return files
+                    .filter(p -> p.getFileName().toString().startsWith(outputBasename + "." + lang))
+                    .findFirst()
+                    .orElseThrow(() -> new IOException("Subtitle file not found for " + outputBasename));
+        }
     }
 }

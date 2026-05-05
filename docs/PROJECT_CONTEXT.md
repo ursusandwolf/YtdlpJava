@@ -8,6 +8,9 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Switched from `url` to `webpage_url` in `AbstractYoutubeService.getPlaylistUrls`.
   - Added filtering logic to skip "NA" and empty strings.
   - Implemented a fallback to the original URL if no valid playlist items are extracted.
+- **Fixed Subtitle Path Resolution**: Resolved an issue where `SubtitleDownloader` failed to locate downloaded subtitle files.
+  - Removed reliance on `yt-dlp --print after_move:filepath` for subtitles as it returns empty with `--skip-download`.
+  - Implemented a search mechanism to find the `.vtt` or `.srt` file created by `yt-dlp` based on the requested language and output basename.
 - **Improved Robustness**: The application now handles cases where `yt-dlp` fails to extract individual item URLs in flat-playlist mode by processing the original URL directly.
 
 ## Pending Items
