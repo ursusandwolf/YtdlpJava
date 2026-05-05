@@ -90,6 +90,17 @@ public class Main {
             }
         }
 
+        // Set specific output directories based on type if still using default or empty
+        if ("output".equals(main.outputDir)) {
+            main.outputDir = switch (main.type.toLowerCase()) {
+                case "sub" -> "txt";
+                case "audio" -> "output/audio";
+                case "video" -> "output/video";
+                case "screenshot" -> "output/img";
+                default -> main.outputDir;
+            };
+        }
+
         ProcessExecutor executor = new ProcessExecutor();
         FilenameProvider filenameProvider = new FilenameGenerator();
         

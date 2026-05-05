@@ -15,6 +15,9 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - **Implemented Real-time Progress Tracking**:
   - Refactored `ProcessExecutor` to stream output to the log in real-time.
   - Added `--newline` and `--progress` flags to `yt-dlp` commands in all downloaders to ensure visible feedback during long operations.
+- **Organized Storage Structure**:
+  - Subtitles are now automatically saved to the `txt/` directory.
+  - Audio, video, and screenshots are organized into `output/audio/`, `output/video/`, and `output/img/` respectively.
 - **Universal URL Handling**: Verified and improved support for both single videos and playlists.
 
 ## Pending Items

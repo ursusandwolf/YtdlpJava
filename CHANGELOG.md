@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - **Subtitle Path Resolution**: Resolved "Invalid argument" error when downloading subtitles. `SubtitleDownloader` now manually searches for the resulting subtitle file since `yt-dlp` doesn't reliably print sidecar file paths with `--skip-download`.
 - **Interactive Language Selection**: Added a prompt to ask for the subtitle language in interactive mode.
 - **Real-time Progress Tracking**: Refactored `ProcessExecutor` to log `yt-dlp` output in real-time, allowing users to see download progress, speed, and ETA directly in the console.
+- **Organized Storage**: Implemented automatic directory management. Files are now saved in type-specific folders: `txt/` for subtitles, `output/audio/` for audio, `output/video/` for video, and `output/img/` for screenshots.
 
 ## [1.3.0] - 2026-05-04
 
