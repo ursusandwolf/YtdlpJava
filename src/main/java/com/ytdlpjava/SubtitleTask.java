@@ -35,4 +35,9 @@ public class SubtitleTask implements VideoTask {
             }
         }
     }
+
+    @Override
+    public FilenameProvider getFilenameProvider() {
+        return filenameProvider;
+    }
 }

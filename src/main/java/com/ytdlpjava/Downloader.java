@@ -10,4 +10,5 @@ public interface Downloader {
     String getStreamUrl(String url) throws IOException, InterruptedException;
     long getDuration(String url) throws IOException, InterruptedException;
     List<String> getPlaylistUrls(String url) throws IOException, InterruptedException;
+    String getPlaylistTitle(String url) throws IOException, InterruptedException;
 }

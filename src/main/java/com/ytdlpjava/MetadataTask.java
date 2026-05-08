@@ -25,4 +25,9 @@ public class MetadataTask implements VideoTask {
         Path result = downloader.download(url, outputDir.resolve(basename).toString());
         log.info("✅ Metadata successfully saved to: {}", result);
     }
+
+    @Override
+    public FilenameProvider getFilenameProvider() {
+        return filenameProvider;
+    }
 }

@@ -51,4 +51,11 @@ public abstract class AbstractYoutubeService implements Downloader {
         if (urls.isEmpty()) return List.of(url);
         return urls;
     }
+
+    @Override
+    public String getPlaylistTitle(String url) throws IOException, InterruptedException {
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--flat-playlist", "--print", "playlist_title", url);
+        String output = executor.run(command, "Failed to fetch playlist title");
+        return output.trim();
+    }
 }

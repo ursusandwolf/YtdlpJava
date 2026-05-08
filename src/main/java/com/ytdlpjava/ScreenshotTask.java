@@ -56,4 +56,9 @@ public class ScreenshotTask implements VideoTask {
             }
         }
     }
+
+    @Override
+    public FilenameProvider getFilenameProvider() {
+        return filenameProvider;
+    }
 }

@@ -5,4 +5,5 @@ import java.nio.file.Path;
 
 public interface VideoTask {
     void execute(String url, Path outputDir) throws Exception;
+    FilenameProvider getFilenameProvider();
 }

@@ -28,4 +28,9 @@ public class VideoDownloadTask implements VideoTask {
         Files.move(downloadedFile, targetPath, StandardCopyOption.REPLACE_EXISTING);
         log.info("✅ Video successfully saved to: {}", targetPath);
     }
+
+    @Override
+    public FilenameProvider getFilenameProvider() {
+        return filenameProvider;
+    }
 }
