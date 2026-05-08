@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
   - Added **keyword extraction and highlighting**: top 30 words are automatically identified and bolded (with an expanded stop-words list to filter out generic terms).
   - Added **Keywords Summary** section at the end of the file.
   - Switched output to **Markdown (.md)** format with headers for timestamps, **automatic line wrapping** (95 chars), and strict **sentence/paragraph limits** (300/600 chars).
+  - Improved **paragraph breaking**: breaks now intelligently wait for sentence endings to avoid disjointed text.
+  - Increased default **timestamp interval to 3 minutes** for better readability.
+  - Fixed **repetition issue**: scrolling lines are no longer repeated when blocks are split.
+  - Improved **capitalization** consistency across timestamp boundaries.
   - Improved **filler word removal**: expanded to catch "да", "э", "а" and implemented **punctuation cleanup** for trailing commas and double dots.
   - Enhanced **capitalization logic** for correct sentence casing after splits.
   - Implemented **smart capitalization** for sentence continuations across timestamps.

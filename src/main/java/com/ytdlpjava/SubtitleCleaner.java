@@ -59,7 +59,7 @@ public class SubtitleCleaner implements ContentProcessor {
             if (lines.isEmpty()) continue;
 
             Duration timestamp = parseTimestamp(timestampStr);
-            boolean forceNewBlock = currentTextAccumulator.length() > 600;
+            boolean forceNewBlock = currentTextAccumulator.length() > 600 && isSentenceEnding(currentTextAccumulator.charAt(currentTextAccumulator.length() - 1));
             
             if (lastTimestamp == null || forceNewBlock || timestamp.minus(lastTimestamp).getSeconds() >= minTimestampGapSeconds) {
                 if (currentTextAccumulator.length() > 0) {
@@ -68,7 +68,7 @@ public class SubtitleCleaner implements ContentProcessor {
                 }
                 cleanedLines.add("\n### [" + formatTimestamp(timestamp) + "]");
                 lastTimestamp = timestamp;
-                lastAddedLine = null;
+                // Do NOT reset lastAddedLine to avoid repetition across blocks
             }
 
             for (String line : lines) {
@@ -190,8 +190,9 @@ public class SubtitleCleaner implements ContentProcessor {
             // Split long sentences if they exceed 300 chars
             line = splitLongSentences(line, 300);
             
-            // Re-capitalize after forced splits
-            line = capitalizeAfterSplit(line);
+            // Re-capitalize after forced splits, but respect initial capitalization
+            boolean startsWithUpper = Character.isUpperCase(line.charAt(0));
+            line = capitalizeAfterSplit(line, startsWithUpper);
 
             processed.add(wrapText(line, 95));
         }
@@ -199,20 +200,26 @@ public class SubtitleCleaner implements ContentProcessor {
         return String.join("\n", processed).trim();
     }
 
-    private String capitalizeAfterSplit(String text) {
+    private String capitalizeAfterSplit(String text, boolean startsWithUpper) {
         StringBuilder sb = new StringBuilder();
-        boolean nextUpper = false;
+        boolean nextUpper = startsWithUpper;
+        boolean firstLetterFound = false;
+        
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (nextUpper && Character.isLetter(c)) {
                 sb.append(Character.toUpperCase(c));
                 nextUpper = false;
+                firstLetterFound = true;
+            } else if (!firstLetterFound && Character.isLetter(c)) {
+                // Respect initial lowercase if requested
+                sb.append(c);
+                firstLetterFound = true;
+                nextUpper = false;
             } else {
                 sb.append(c);
                 if (isSentenceEnding(c)) {
                     nextUpper = true;
-                } else if (nextUpper && !Character.isWhitespace(c)) {
-                    nextUpper = false;
                 }
             }
         }

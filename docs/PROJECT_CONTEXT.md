@@ -11,7 +11,10 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Added a **Keywords Summary** section at the end of the subtitle file.
   - Switched output format to **Markdown (.md)** style, using headers for timestamps and bolding for key terms.
   - Implemented **smart line wrapping**: subtitle text is now wrapped to a maximum of 95 characters per line for better readability.
-  - Enforced **sentence and paragraph limits**: sentences are now capped at 300 characters, and paragraphs (text blocks between timestamps) are capped at 600 characters, automatically splitting if they exceed these limits.
+  - Enforced **sentence and paragraph limits**: sentences are now capped at 300 characters, and paragraphs are capped at 600 characters. Paragraph breaks now intelligently wait for the end of a sentence.
+  - Increased **timestamp interval**: the default gap between timestamps is now 180 seconds (3 minutes) for a cleaner reading experience.
+  - Fixed **block-spanning capitalization**: capitalization now correctly identifies if a new block is a continuation of a sentence from the previous block.
+  - Improved **de-duplication**: scrolling lines are now correctly de-duplicated even when split across forced paragraph breaks.
   - Implemented **smart filler word cleaning**: automatically removes "э-э", "ну", "как бы" and other common fillers using Cyrillic-aware regex.
   - Implemented **smart sentence joining**: the cleaner now detects if a block is a continuation of a previous sentence and avoids incorrect capitalization.
   - Refactored `SubtitleCleaner` to join lines into paragraphs between timestamp headers.
