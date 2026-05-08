@@ -5,7 +5,8 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 
 ## Recent Changes (2026-05-08)
 - **Advanced Subtitle Quality Improvements**:
-  - Implemented **keyword extraction and highlighting**: automatically identifies the top 10 most frequent keywords (ignoring prepositions) and highlights them in **bold** throughout the text.
+  - Implemented **keyword extraction and highlighting**: automatically identifies the top 10 most frequent keywords (ignoring an expanded list of prepositions, pronouns, and common verbs) and highlights them in **bold** throughout the text.
+  - Improved **filler word cleaning**: expanded detection to include single-letter fillers like "э" and "а" even when near punctuation.
   - Added a **Keywords Summary** section at the end of the subtitle file.
   - Switched output format to **Markdown (.md)** style, using headers for timestamps and bolding for key terms.
   - Implemented **smart line wrapping**: subtitle text is now wrapped to a maximum of 95 characters per line for better readability.
