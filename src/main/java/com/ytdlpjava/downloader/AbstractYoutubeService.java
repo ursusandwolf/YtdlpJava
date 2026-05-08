@@ -1,6 +1,7 @@
-package com.ytdlpjava;
+package com.ytdlpjava.downloader;
 
-import lombok.RequiredArgsConstructor;
+import com.ytdlpjava.core.ProcessExecutor;
+import com.ytdlpjava.model.Downloader;import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.List;

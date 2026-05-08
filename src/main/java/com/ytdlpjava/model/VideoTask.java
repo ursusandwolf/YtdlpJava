@@ -1,4 +1,4 @@
-package com.ytdlpjava;
+package com.ytdlpjava.model;
 
 import java.io.IOException;
 import java.nio.file.Path;

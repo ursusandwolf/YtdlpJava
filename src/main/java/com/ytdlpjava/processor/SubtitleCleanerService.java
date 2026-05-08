@@ -1,4 +1,4 @@
-package com.ytdlpjava;
+package com.ytdlpjava.processor;
 
 import java.util.ArrayList;
 import java.util.HashSet;

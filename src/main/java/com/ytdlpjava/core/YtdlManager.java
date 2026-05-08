@@ -1,5 +1,7 @@
-package com.ytdlpjava;
+package com.ytdlpjava.core;
 
+import com.ytdlpjava.model.Downloader;
+import com.ytdlpjava.model.VideoTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

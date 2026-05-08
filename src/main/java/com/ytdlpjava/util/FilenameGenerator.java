@@ -1,5 +1,6 @@
-package com.ytdlpjava;
+package com.ytdlpjava.util;
 
+import com.ytdlpjava.model.FilenameProvider;
 import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

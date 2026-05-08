@@ -1,4 +1,4 @@
-package com.ytdlpjava;
+package com.ytdlpjava.processor;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

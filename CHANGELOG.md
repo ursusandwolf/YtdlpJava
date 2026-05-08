@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [1.3.2] - 2026-05-08
 
 ### Added
+- **Multi-Package Architectural Refactoring**:
+  - Reorganized all classes into logical sub-packages (`core`, `model`, `downloader`, `task`, `processor`, `util`, `ui`) for better maintainability and SRP compliance.
 - **Improved English Keyword Extraction**:
   - Added a dedicated English stop-words dictionary to filter out common noise words.
   - Implemented language-aware stop-word loading and basic English stemming.

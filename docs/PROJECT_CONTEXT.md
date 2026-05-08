@@ -45,6 +45,10 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - **Metadata Extraction**:
   - Implemented `MetadataDownloader` and `MetadataTask` to extract video description and info (tags, stats) to JSON files.
   - Added `metadata` task type (`-t metadata`) which saves files to `output/metadata/`.
+- **Multi-Package Architectural Refactoring**: (2026-05-08)
+  - Reorganized all classes into logical sub-packages: `core`, `model`, `downloader`, `task`, `processor`, `util`, and `ui`.
+  - Moved unit tests to matching sub-packages in `src/test/java`.
+  - Updated all imports and package declarations to ensure build integrity.
 - **Improved English Keyword Extraction**: (2026-05-08)
   - Created a comprehensive English stop-words dictionary (`src/main/resources/dictionaries/stop_words_en.txt`).
   - Updated `SubtitleCleaner` to dynamically load stop-words based on the subtitle language.

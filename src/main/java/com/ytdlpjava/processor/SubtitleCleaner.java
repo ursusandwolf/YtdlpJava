@@ -1,5 +1,7 @@
-package com.ytdlpjava;
+package com.ytdlpjava.processor;
 
+import com.ytdlpjava.model.ContentProcessor;
+import com.ytdlpjava.util.DictionaryLoader;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
