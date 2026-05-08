@@ -196,4 +196,34 @@ class SubtitleCleanerTest {
         assertFalse(result.contains("ээ"), "Should remove 'ээ'");
         assertTrue(result.contains("возвращаясь с Победою домой я пришел") || result.contains("Возвращаясь с Победою домой я пришел"));
     }
+
+    @Test
+    void testKeywordExclusion(@TempDir Path tempDir) throws IOException {
+        SubtitleCleaner cleaner = new SubtitleCleaner(10);
+        Path vttPath = tempDir.resolve("exclude.vtt");
+        String vttContent = "WEBVTT\n" +
+                "\n" +
+                "00:00:01.000 --> 00:00:10.000\n" +
+                "Человек говорит тебе о себе. Свое слово он сказал нас в мире жизни. Нет где почему дальше всем нас.\n";
+        Files.writeString(vttPath, vttContent);
+
+        String result = cleaner.process(vttPath);
+        
+        System.out.println("Exclusion Result:\n" + result);
+        
+        // Informative words should be keywords
+        assertTrue(result.contains("**Человек**") || result.contains("**человек**"));
+        assertTrue(result.contains("**Жизни**") || result.contains("**жизни**"));
+        
+        // Pronouns and noise should NOT be in the "Ключевые слова" summary
+        assertFalse(result.contains("- **тебе**"), "Should exclude 'тебе'");
+        assertFalse(result.contains("- **себе**"), "Should exclude 'себе'");
+        assertFalse(result.contains("- **свое**"), "Should exclude 'свое'");
+        assertFalse(result.contains("- **нас**"), "Should exclude 'нас'");
+        assertFalse(result.contains("- **нет**"), "Should exclude 'нет'");
+        assertFalse(result.contains("- **где**"), "Should exclude 'где'");
+        assertFalse(result.contains("- **почему**"), "Should exclude 'почему'");
+        assertFalse(result.contains("- **дальше**"), "Should exclude 'дальше'");
+        assertFalse(result.contains("- **всем**"), "Should exclude 'всем'");
+    }
 }
