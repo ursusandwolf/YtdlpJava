@@ -36,6 +36,7 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - **Universal URL Handling**: Verified and improved support for both single videos and playlists.
 
 - **Subtitle Quality & Maintenance**:
+  - Significantly expanded the stop-words list (now `STOP_WORDS`) to exclude pronouns, common adverbs, and generic particles from keyword extraction, ensuring more meaningful summaries.
   - Improved `SubtitleCleaner` by adding more filler words ("эм", "ам", "ээ") and fixing punctuation errors where dots were incorrectly left after prepositions (e.g., "с. Победой" -> "с Победой").
   - Updated `.gitignore` to exclude `txt/` and `output/` directories.
 - **Metadata Extraction**:

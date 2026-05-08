@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Subtitle Cleaning**:
+  - Expanded the stop-words list to exclude pronouns ("себя", "тебе", "нас"), adverbs ("где", "почему", "дальше"), and common particles ("нет") from keyword extraction.
   - Added more filler words to the removal list: "эм", "ам", "ээ".
   - Fixed a punctuation bug where dots were incorrectly preserved after short prepositions (e.g., "с.", "в.").
 - **Maintenance**: Updated `.gitignore` to exclude `txt/` and `output/` directories.
