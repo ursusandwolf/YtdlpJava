@@ -18,7 +18,7 @@ public class SubtitleCleaner implements ContentProcessor {
     private static final Pattern SPEAKER_TAGS = Pattern.compile("\\[.*?\\]");
     
     private static final String[] FILLERS = {
-            "э-э", "а-а", "ну", "так скажем", "как бы", "вот", "значит", "собственно", "в общем", "э", "а"
+            "э-э", "а-а", "ну", "так скажем", "как бы", "вот", "значит", "собственно", "в общем", "э", "а", "да"
     };
     
     private static final String[] PREPOSITIONS = {
@@ -152,6 +152,13 @@ public class SubtitleCleaner implements ContentProcessor {
             String pattern = "(?iu)(?<=^|[^а-яёa-z])" + Pattern.quote(filler) + "(?=[^а-яёa-z]|$)[,\\s-]*";
             result = result.replaceAll(pattern, " ");
         }
+        
+        // Cleanup punctuation mess left by filler removal
+        result = result.replaceAll(",\\s*[.,!?…]+", "."); // ",." -> "."
+        result = result.replaceAll("\\s+,", ",");       // " ," -> ","
+        result = result.replaceAll(",+", ",");          // ",," -> ","
+        result = result.replaceAll("\\.{2,}", ".");     // ".." -> "."
+        
         return result.replaceAll("\\s+", " ").trim();
     }
 
@@ -182,11 +189,34 @@ public class SubtitleCleaner implements ContentProcessor {
 
             // Split long sentences if they exceed 300 chars
             line = splitLongSentences(line, 300);
+            
+            // Re-capitalize after forced splits
+            line = capitalizeAfterSplit(line);
 
             processed.add(wrapText(line, 95));
         }
 
         return String.join("\n", processed).trim();
+    }
+
+    private String capitalizeAfterSplit(String text) {
+        StringBuilder sb = new StringBuilder();
+        boolean nextUpper = false;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (nextUpper && Character.isLetter(c)) {
+                sb.append(Character.toUpperCase(c));
+                nextUpper = false;
+            } else {
+                sb.append(c);
+                if (isSentenceEnding(c)) {
+                    nextUpper = true;
+                } else if (nextUpper && !Character.isWhitespace(c)) {
+                    nextUpper = false;
+                }
+            }
+        }
+        return sb.toString();
     }
 
     private String splitLongSentences(String text, int maxLength) {

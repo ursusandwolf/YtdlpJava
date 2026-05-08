@@ -157,4 +157,23 @@ class SubtitleCleanerTest {
             }
         }
     }
+
+    @Test
+    void testDaFillerAndPunctuation(@TempDir Path tempDir) throws IOException {
+        SubtitleCleaner cleaner = new SubtitleCleaner(10);
+        Path vttPath = tempDir.resolve("punctuation.vtt");
+        String vttContent = "WEBVTT\n" +
+                "\n" +
+                "00:00:01.000 --> 00:00:10.000\n" +
+                "в будущем, да, для того,. чтобы мы с\n";
+        Files.writeString(vttPath, vttContent);
+
+        String result = cleaner.process(vttPath);
+        
+        System.out.println("Punctuation Result:\n" + result);
+        
+        assertFalse(result.contains(",. "), "Should not contain ',.'");
+        assertFalse(result.contains(" да, "), "Should remove 'да'");
+        assertTrue(result.contains("В будущем, для того. Чтобы"), "Should be cleaned: " + result);
+    }
 }
