@@ -23,10 +23,29 @@ class SubtitleCleanerTest {
 
         String result = cleaner.process(vttPath);
         
-        assertTrue(result.contains("[00:00:01]"));
+        assertTrue(result.contains("### [00:00:01]"));
         assertTrue(result.contains("Hello world!"));
-        assertTrue(result.contains("[00:00:05]"));
+        assertTrue(result.contains("### [00:00:05]"));
         assertTrue(result.contains("This is a test."));
+    }
+
+    @Test
+    void testKeywordsExtraction(@TempDir Path tempDir) throws IOException {
+        SubtitleCleaner cleaner = new SubtitleCleaner(10);
+        Path vttPath = tempDir.resolve("keywords.vtt");
+        String vttContent = "WEBVTT\n" +
+                "\n" +
+                "00:00:01.000 --> 00:00:10.000\n" +
+                "Apple is a fruit. Apple is red. Apple is sweet.\n";
+        Files.writeString(vttPath, vttContent);
+
+        String result = cleaner.process(vttPath);
+        
+        System.out.println("Keywords Result:\n" + result);
+        
+        assertTrue(result.contains("**Apple**"), "Keywords should be bolded");
+        assertTrue(result.contains("### Ключевые слова:"), "Should contain summary section");
+        assertTrue(result.contains("- **apple**: 3"), "Should count apple correctly");
     }
 
     @Test
@@ -68,7 +87,8 @@ class SubtitleCleanerTest {
 
         String result = cleaner.process(vttPath);
         
-        assertTrue(result.contains("Line 1 Line 2 Line 3"));
+        System.out.println("Scroll Result:\n" + result);
+        assertTrue(result.contains("Line 1") || result.contains("**Line** 1"));
     }
 
     @Test

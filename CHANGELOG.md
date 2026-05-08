@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Subtitle Cleaning**: Significant improvements to text quality and readability.
+  - Added **keyword extraction and highlighting**: top words are automatically identified and bolded.
+  - Added **Keywords Summary** section at the end of the file.
+  - Switched output to **Markdown (.md)** format with headers for timestamps.
   - Added **smart filler word removal** (e.g., "э-э", "ну", "так скажем") with Cyrillic support.
   - Implemented **smart capitalization** for sentence continuations across timestamps.
   - Subtitle lines are now joined into paragraphs between timestamps.

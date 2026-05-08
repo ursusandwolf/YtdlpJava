@@ -6,10 +6,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class SubtitleCleaner implements ContentProcessor {
@@ -19,6 +19,11 @@ public class SubtitleCleaner implements ContentProcessor {
     
     private static final String[] FILLERS = {
             "э-э", "а-а", "ну", "так скажем", "как бы", "вот", "значит", "собственно", "в общем"
+    };
+    
+    private static final String[] PREPOSITIONS = {
+            "в", "на", "с", "из", "к", "по", "о", "у", "для", "за", "от", "до", "без", "над", "под", "при", "про", "через",
+            "и", "а", "но", "да", "или", "что", "как", "если", "то", "чтобы", "это", "этот", "эта", "эти", "был", "была", "было", "были"
     };
 
     private final int minTimestampGapSeconds;
@@ -50,7 +55,7 @@ public class SubtitleCleaner implements ContentProcessor {
                     cleanedLines.add(currentTextAccumulator.toString().trim());
                     currentTextAccumulator.setLength(0);
                 }
-                cleanedLines.add("\n[" + formatTimestamp(timestamp) + "]");
+                cleanedLines.add("\n### [" + formatTimestamp(timestamp) + "]");
                 lastTimestamp = timestamp;
             }
 
@@ -69,7 +74,48 @@ public class SubtitleCleaner implements ContentProcessor {
             cleanedLines.add(currentTextAccumulator.toString().trim());
         }
 
-        return postProcessText(cleanedLines);
+        String mainText = postProcessText(cleanedLines);
+        return addKeywordsSummary(mainText);
+    }
+
+    private String addKeywordsSummary(String text) {
+        Map<String, Integer> wordCounts = new HashMap<>();
+        // Simple regex for words, supporting Cyrillic
+        Matcher m = Pattern.compile("(?iu)[а-яёa-z]{3,}").matcher(text);
+        
+        Set<String> ignoreList = new HashSet<>(Arrays.asList(PREPOSITIONS));
+        
+        while (m.find()) {
+            String word = m.group().toLowerCase();
+            if (!ignoreList.contains(word)) {
+                wordCounts.put(word, wordCounts.getOrDefault(word, 0) + 1);
+            }
+        }
+        
+        List<Map.Entry<String, Integer>> topKeywords = wordCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(10)
+                .collect(Collectors.toList());
+                
+        if (topKeywords.isEmpty()) return text;
+        
+        String highlightedText = text;
+        for (Map.Entry<String, Integer> entry : topKeywords) {
+            if (entry.getValue() >= 2) {
+                String word = entry.getKey();
+                // Bold the word, making sure not to double-bold or bold within bold
+                String pattern = "(?iu)(?<!\\*\\*)\\b(" + Pattern.quote(word) + ")\\b(?!\\*\\*)";
+                highlightedText = highlightedText.replaceAll(pattern, "**$1**");
+            }
+        }
+        
+        StringBuilder result = new StringBuilder(highlightedText);
+        result.append("\n\n---\n### Ключевые слова:\n");
+        for (Map.Entry<String, Integer> entry : topKeywords) {
+            result.append("- **").append(entry.getKey()).append("**: ").append(entry.getValue()).append("\n");
+        }
+        
+        return result.toString();
     }
 
     private List<String> cleanTextBlock(String textBlock) {
@@ -91,7 +137,6 @@ public class SubtitleCleaner implements ContentProcessor {
     private String smartCleanFillers(String line) {
         String result = line;
         for (String filler : FILLERS) {
-            // Cyrillic-aware boundary: start of line or non-letter, end of line or non-letter
             String pattern = "(?iu)(?<=^|[^а-яёa-z])" + Pattern.quote(filler) + "(?=[^а-яёa-z]|$)[,\\s-]*";
             result = result.replaceAll(pattern, " ");
         }
@@ -102,7 +147,7 @@ public class SubtitleCleaner implements ContentProcessor {
         List<String> processed = new ArrayList<>();
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
-            if (line.startsWith("\n[")) {
+            if (line.startsWith("\n### [")) {
                 processed.add(line);
                 continue;
             }
