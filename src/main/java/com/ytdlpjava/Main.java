@@ -79,10 +79,19 @@ public class Main {
                 };
 
                 if ("sub".equalsIgnoreCase(main.type)) {
-                    System.out.print("🌐 Введите язык субтитров (например, en, ru) [en]: ");
+                    System.out.println("\nВыберите язык субтитров:");
+                    System.out.println("1. Английский (en)");
+                    System.out.println("2. Русский (ru)");
+                    System.out.println("3. Украинский (uk)");
+                    System.out.print("Введите номер или код языка [en]: ");
                     String inputLang = scanner.nextLine().trim();
                     if (!inputLang.isEmpty()) {
-                        main.lang = inputLang;
+                        main.lang = switch (inputLang) {
+                            case "1" -> "en";
+                            case "2" -> "ru";
+                            case "3" -> "uk";
+                            default -> inputLang;
+                        };
                     }
                 } else if ("audio".equalsIgnoreCase(main.type)) {
                     System.out.print("🎵 Введите формат (opus, mp3, m4a) [opus]: ");
