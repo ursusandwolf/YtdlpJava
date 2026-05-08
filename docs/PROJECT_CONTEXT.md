@@ -8,6 +8,7 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Implemented **keyword extraction and highlighting**: automatically identifies the top 10 most frequent keywords (ignoring prepositions) and highlights them in **bold** throughout the text.
   - Added a **Keywords Summary** section at the end of the subtitle file.
   - Switched output format to **Markdown (.md)** style, using headers for timestamps and bolding for key terms.
+  - Implemented **smart line wrapping**: subtitle text is now wrapped to a maximum of 95 characters per line for better readability.
   - Implemented **smart filler word cleaning**: automatically removes "э-э", "ну", "как бы" and other common fillers using Cyrillic-aware regex.
   - Implemented **smart sentence joining**: the cleaner now detects if a block is a continuation of a previous sentence and avoids incorrect capitalization.
   - Refactored `SubtitleCleaner` to join lines into paragraphs between timestamp headers.

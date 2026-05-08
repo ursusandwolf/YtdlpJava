@@ -25,7 +25,7 @@ public class SubtitleTask implements VideoTask {
                 Files.createDirectories(outputDir);
             }
             
-            Path outputPath = outputDir.resolve(basename + ".txt");
+            Path outputPath = outputDir.resolve(basename + ".md");
             Files.writeString(outputPath, result);
             log.info("✅ Success! Subtitles saved to: {}", outputPath);
         } finally {

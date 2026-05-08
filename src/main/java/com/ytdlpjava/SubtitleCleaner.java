@@ -168,10 +168,35 @@ public class SubtitleCleaner implements ContentProcessor {
                 }
             }
 
-            processed.add(line);
+            processed.add(wrapText(line, 95));
         }
 
         return String.join("\n", processed).trim();
+    }
+
+    private String wrapText(String text, int maxLength) {
+        StringBuilder result = new StringBuilder();
+        String[] words = text.split(" ");
+        int currentLineLength = 0;
+
+        for (String word : words) {
+            // Check if adding the word (plus a space) exceeds maxLength
+            // We strip markdown bold markers for length calculation to be more accurate
+            int wordLength = word.replaceAll("\\*\\*", "").length();
+            
+            if (currentLineLength + wordLength + 1 > maxLength) {
+                result.append("\n");
+                currentLineLength = 0;
+            } else if (currentLineLength > 0) {
+                result.append(" ");
+                currentLineLength++;
+            }
+            
+            result.append(word);
+            currentLineLength += wordLength;
+        }
+
+        return result.toString();
     }
 
     private boolean isSentenceEnding(char c) {

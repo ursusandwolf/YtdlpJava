@@ -135,4 +135,26 @@ class SubtitleCleanerTest {
         assertTrue(result.contains("предложение"));
         assertFalse(result.contains("Предложение"));
     }
+
+    @Test
+    void testLineWrapping(@TempDir Path tempDir) throws IOException {
+        SubtitleCleaner cleaner = new SubtitleCleaner(10);
+        Path vttPath = tempDir.resolve("wrap.vtt");
+        String vttContent = "WEBVTT\n" +
+                "\n" +
+                "00:00:01.000 --> 00:00:10.000\n" +
+                "This is a very long line that should definitely be wrapped into multiple lines because it exceeds the ninety-five character limit that we have set in our cleaner implementation for better readability.\n";
+        Files.writeString(vttPath, vttContent);
+
+        String result = cleaner.process(vttPath);
+        
+        System.out.println("Wrap Result:\n" + result);
+        
+        String[] resultLines = result.split("\n");
+        for (String line : resultLines) {
+            if (!line.startsWith("#") && !line.startsWith("-") && !line.startsWith("---") && !line.isEmpty()) {
+                assertTrue(line.length() <= 100, "Line is too long: " + line.length() + " -> " + line);
+            }
+        }
+    }
 }
