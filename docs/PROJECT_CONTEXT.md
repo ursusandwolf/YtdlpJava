@@ -45,8 +45,14 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - **Metadata Extraction**:
   - Implemented `MetadataDownloader` and `MetadataTask` to extract video description and info (tags, stats) to JSON files.
   - Added `metadata` task type (`-t metadata`) which saves files to `output/metadata/`.
-- **UI Improvements**:
-  - Added numeric language selection (1-en, 2-ru, 3-uk) for subtitles in interactive mode.
+- **Major Architectural Refactoring**: (2026-05-08)
+  - Refactored `SubtitleCleaner` (God Class) into specialized components: `SubtitleParser`, `SubtitleCleanerService`, `KeywordAnalyzer`, and `MarkdownFormatter` for better SRP compliance.
+  - Externalized `STOP_WORDS` and `FILLERS` from code to resource files (`src/main/resources/dictionaries/`).
+  - Decoupled interactive CLI logic from `Main.java` into `InteractivePromptService`.
+  - Replaced wildcard imports with explicit ones across the project.
+  - Consistently applied Lombok `@RequiredArgsConstructor` and `@Getter`/`@Setter`.
+- **Comprehensive Code Review**: (2026-05-08)
+  - Identified architectural issues and implemented fixes in the same session.
 
 ## Pending Items
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.

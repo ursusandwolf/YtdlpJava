@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [1.3.2] - 2026-05-08
 
 ### Added
+- **Major Architectural Refactoring**:
+  - Refactored `SubtitleCleaner` (God Class) into specialized components: `SubtitleParser`, `SubtitleCleanerService`, `KeywordAnalyzer`, and `MarkdownFormatter` for better SRP compliance.
+  - Externalized `STOP_WORDS` and `FILLERS` to resource files (`src/main/resources/dictionaries/`).
+  - Decoupled interactive CLI logic from `Main.java` into `InteractivePromptService`.
 - **Playlist Folders**: Automatically create subdirectories for playlist content (e.g., `output/audio/PlaylistName/`) to keep downloads organized.
 - **Metadata Extraction**: Introduced `MetadataTask` and `MetadataDownloader` accessible via `-t metadata`. This feature downloads video descriptions and metadata (tags, views, categories) as a JSON file, automatically saving them to `output/metadata/`.
 - **Improved UI**: Added numeric selection (1-en, 2-ru, 3-uk) for subtitle languages in interactive mode.
