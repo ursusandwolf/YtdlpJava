@@ -59,13 +59,16 @@ public class SubtitleCleaner implements ContentProcessor {
             if (lines.isEmpty()) continue;
 
             Duration timestamp = parseTimestamp(timestampStr);
-            if (lastTimestamp == null || timestamp.minus(lastTimestamp).getSeconds() >= minTimestampGapSeconds) {
+            boolean forceNewBlock = currentTextAccumulator.length() > 600;
+            
+            if (lastTimestamp == null || forceNewBlock || timestamp.minus(lastTimestamp).getSeconds() >= minTimestampGapSeconds) {
                 if (currentTextAccumulator.length() > 0) {
                     cleanedLines.add(currentTextAccumulator.toString().trim());
                     currentTextAccumulator.setLength(0);
                 }
                 cleanedLines.add("\n### [" + formatTimestamp(timestamp) + "]");
                 lastTimestamp = timestamp;
+                lastAddedLine = null;
             }
 
             for (String line : lines) {
@@ -177,10 +180,45 @@ public class SubtitleCleaner implements ContentProcessor {
                 }
             }
 
+            // Split long sentences if they exceed 300 chars
+            line = splitLongSentences(line, 300);
+
             processed.add(wrapText(line, 95));
         }
 
         return String.join("\n", processed).trim();
+    }
+
+    private String splitLongSentences(String text, int maxLength) {
+        String[] parts = text.split("(?<=[.!?…])\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part.length() > maxLength) {
+                if (sb.length() > 0) sb.append(" ");
+                sb.append(forceSplitSentence(part, maxLength));
+            } else {
+                if (sb.length() > 0) sb.append(" ");
+                sb.append(part);
+            }
+        }
+        return sb.toString();
+    }
+
+    private String forceSplitSentence(String sentence, int maxLength) {
+        if (sentence.length() <= maxLength) return sentence;
+        
+        String searchArea = sentence.substring(0, Math.min(sentence.length(), maxLength));
+        int breakPoint = searchArea.lastIndexOf(", ");
+        if (breakPoint == -1) breakPoint = searchArea.lastIndexOf("; ");
+        if (breakPoint == -1) breakPoint = searchArea.lastIndexOf(" "); 
+        
+        if (breakPoint != -1) {
+            return sentence.substring(0, breakPoint + 1).trim() + ".\n" + 
+                   Character.toUpperCase(sentence.charAt(breakPoint + 1)) + 
+                   forceSplitSentence(sentence.substring(breakPoint + 2).trim(), maxLength);
+        }
+        
+        return sentence;
     }
 
     private String wrapText(String text, int maxLength) {

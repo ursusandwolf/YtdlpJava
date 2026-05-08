@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 - **Subtitle Cleaning**: Significant improvements to text quality and readability.
   - Added **keyword extraction and highlighting**: top words are automatically identified and bolded (with an expanded stop-words list to filter out generic terms like "вами", "есть", "видим").
   - Added **Keywords Summary** section at the end of the file.
-  - Switched output to **Markdown (.md)** format with headers for timestamps and **automatic line wrapping** (95 chars).
+  - Switched output to **Markdown (.md)** format with headers for timestamps, **automatic line wrapping** (95 chars), and strict **sentence/paragraph limits** (300/600 chars).
   - Improved **filler word removal**: expanded to catch "э" and "а" variations.
   - Implemented **smart capitalization** for sentence continuations across timestamps.
   - Subtitle lines are now joined into paragraphs between timestamps.
