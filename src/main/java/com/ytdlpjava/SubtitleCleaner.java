@@ -54,9 +54,9 @@ public class SubtitleCleaner implements ContentProcessor {
     public String process(Path vttPath) throws IOException {
         log.info("Cleaning subtitles: {}", vttPath.getFileName());
         String rawText = Files.readString(vttPath, StandardCharsets.UTF_8);
-        List<String> cleanedLines = new ArrayList<>();
-        Duration lastTimestamp = null;
-        StringBuilder currentTextAccumulator = new StringBuilder();
+        List<String> items = new ArrayList<>();
+        Duration lastTimestampHeader = null;
+        StringBuilder currentParagraph = new StringBuilder();
         String lastAddedLine = null;
 
         Matcher matcher = BLOCK_PATTERN.matcher(rawText);
@@ -68,34 +68,38 @@ public class SubtitleCleaner implements ContentProcessor {
             if (lines.isEmpty()) continue;
 
             Duration timestamp = parseTimestamp(timestampStr);
-            boolean forceNewBlock = currentTextAccumulator.length() > 600 && isSentenceEnding(currentTextAccumulator.charAt(currentTextAccumulator.length() - 1));
             
-            if (lastTimestamp == null || forceNewBlock || timestamp.minus(lastTimestamp).getSeconds() >= minTimestampGapSeconds) {
-                if (currentTextAccumulator.length() > 0) {
-                    cleanedLines.add(currentTextAccumulator.toString().trim());
-                    currentTextAccumulator.setLength(0);
+            // Should we insert a NEW TIMESTAMP HEADER?
+            if (lastTimestampHeader == null || timestamp.minus(lastTimestampHeader).getSeconds() >= minTimestampGapSeconds) {
+                if (currentParagraph.length() > 0) {
+                    items.add(currentParagraph.toString().trim());
+                    currentParagraph.setLength(0);
                 }
-                cleanedLines.add("\n### [" + formatTimestamp(timestamp) + "]");
-                lastTimestamp = timestamp;
-                // Do NOT reset lastAddedLine to avoid repetition across blocks
+                items.add("### [" + formatTimestamp(timestamp) + "]");
+                lastTimestampHeader = timestamp;
+            } 
+            // Should we insert a PARAGRAPH BREAK (length limit 600 + sentence end)?
+            else if (currentParagraph.length() > 600 && isSentenceEnding(currentParagraph.charAt(currentParagraph.length() - 1))) {
+                items.add(currentParagraph.toString().trim());
+                currentParagraph.setLength(0);
             }
 
             for (String line : lines) {
                 if (lastAddedLine == null || !line.equals(lastAddedLine)) {
-                    if (currentTextAccumulator.length() > 0 && !currentTextAccumulator.toString().endsWith("\n")) {
-                        currentTextAccumulator.append(" ");
+                    if (currentParagraph.length() > 0 && !currentParagraph.toString().endsWith("\n")) {
+                        currentParagraph.append(" ");
                     }
-                    currentTextAccumulator.append(line);
+                    currentParagraph.append(line);
                     lastAddedLine = line;
                 }
             }
         }
 
-        if (currentTextAccumulator.length() > 0) {
-            cleanedLines.add(currentTextAccumulator.toString().trim());
+        if (currentParagraph.length() > 0) {
+            items.add(currentParagraph.toString().trim());
         }
 
-        String mainText = postProcessText(cleanedLines);
+        String mainText = postProcessText(items);
         return addKeywordsSummary(mainText);
     }
 
@@ -207,42 +211,58 @@ public class SubtitleCleaner implements ContentProcessor {
         return result.replaceAll("\\s+", " ").trim();
     }
 
-    private String postProcessText(List<String> lines) {
-        List<String> processed = new ArrayList<>();
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.startsWith("\n### [")) {
-                processed.add(line);
+    private String postProcessText(List<String> items) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < items.size(); i++) {
+            String item = items.get(i);
+            if (item.trim().isEmpty()) continue;
+
+            if (item.startsWith("### [")) { // It's a header
+                if (sb.length() > 0) sb.append("\n\n");
+                sb.append(item.trim());
                 continue;
             }
 
-            if (!line.isEmpty()) {
-                boolean shouldCapitalize = true;
-                if (i > 1) {
-                    String prevText = lines.get(i - 2);
-                    if (!prevText.isEmpty() && !isSentenceEnding(prevText.charAt(prevText.length() - 1))) {
-                        shouldCapitalize = false;
+            // It's a paragraph
+            String paragraph = item;
+            boolean shouldCapitalize = true;
+            if (i > 0) {
+                // Find the previous paragraph, skipping headers
+                String prevParagraph = null;
+                for (int j = i - 1; j >= 0; j--) {
+                    if (!items.get(j).startsWith("### [")) {
+                        prevParagraph = items.get(j);
+                        break;
                     }
                 }
                 
-                if (shouldCapitalize) {
-                    line = line.substring(0, 1).toUpperCase() + line.substring(1);
-                } else {
-                    line = line.substring(0, 1).toLowerCase() + line.substring(1);
+                if (prevParagraph != null) {
+                    if (!isSentenceEnding(prevParagraph.charAt(prevParagraph.length() - 1))) {
+                        shouldCapitalize = false;
+                    }
                 }
             }
 
-            // Split long sentences if they exceed 300 chars
-            line = splitLongSentences(line, 300);
-            
-            // Re-capitalize after forced splits, but respect initial capitalization
-            boolean startsWithUpper = line.length() > 0 && Character.isUpperCase(line.charAt(0));
-            line = capitalizeAfterSplit(line, startsWithUpper);
+            if (shouldCapitalize) {
+                paragraph = paragraph.substring(0, 1).toUpperCase() + paragraph.substring(1);
+            } else {
+                paragraph = paragraph.substring(0, 1).toLowerCase() + paragraph.substring(1);
+            }
 
-            processed.add(wrapText(line, 95));
+            paragraph = splitLongSentences(paragraph, 300);
+            boolean startsWithUpper = paragraph.length() > 0 && Character.isUpperCase(paragraph.charAt(0));
+            paragraph = capitalizeAfterSplit(paragraph, startsWithUpper);
+
+            if (sb.length() > 0) {
+                if (sb.toString().trim().endsWith("]")) { // Just after a header
+                    sb.append("\n");
+                } else {
+                    sb.append("\n\n"); // Between paragraphs
+                }
+            }
+            sb.append(wrapText(paragraph, 95));
         }
-
-        return String.join("\n", processed).trim();
+        return sb.toString().trim();
     }
 
     private String capitalizeAfterSplit(String text, boolean startsWithUpper) {
