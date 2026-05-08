@@ -3,12 +3,13 @@
 ## Current State
 The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
 
-## Recent Changes (2026-05-05)
-- **Fixed yt-dlp URL Extraction**: Resolved an issue where `yt-dlp --flat-playlist --print url` returned "NA" for certain videos.
-  - Switched from `url` to `webpage_url` in `AbstractYoutubeService.getPlaylistUrls`.
-  - Added filtering logic to skip "NA" and empty strings.
-  - Implemented a fallback to the original URL if no valid playlist items are extracted.
-- **Fixed Subtitle Path Resolution**: Resolved an issue where `SubtitleDownloader` failed to locate downloaded subtitle files.
+## Recent Changes (2026-05-08)
+- **Improved Subtitle Cleaning Logic**: Refactored `SubtitleCleaner` to produce more natural text.
+  - Subtitle lines are now joined into paragraphs between timestamp headers, significantly reducing line breaks.
+  - Removed aggressive automatic dot addition at the end of every subtitle line, which was causing "too many dots" in auto-generated subtitles.
+  - Improved de-duplication of scrolling VTT lines within paragraphs.
+  - Added comprehensive tests for auto-generated and scrolling subtitles.
+- **Fixed Subtitle Path Resolution**: (2026-05-05) ...
   - Removed reliance on `yt-dlp --print after_move:filepath` for subtitles as it returns empty with `--skip-download`.
   - Implemented a search mechanism to find the `.vtt` or `.srt` file created by `yt-dlp` based on the requested language and output basename.
 - **Added Interactive Language Selection**: The tool now prompts the user for a subtitle language if it's not provided via CLI parameters.

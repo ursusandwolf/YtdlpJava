@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.2] - 2026-05-08
+
+### Fixed
+- **Subtitle Cleaning**: Resolved "too many dots" issue in auto-generated subtitles.
+  - Subtitle lines are now joined into paragraphs between timestamps, providing a more readable text flow.
+  - Removed aggressive automatic dot addition at the end of every line.
+  - Improved de-duplication of scrolling lines in VTT files.
+  - Added comprehensive tests for auto-generated and scrolling subtitles.
+
 ## [1.3.1] - 2026-05-05
 
 ### Fixed

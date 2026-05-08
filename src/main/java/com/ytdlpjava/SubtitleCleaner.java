@@ -29,6 +29,8 @@ public class SubtitleCleaner implements ContentProcessor {
         String rawText = Files.readString(vttPath, StandardCharsets.UTF_8);
         List<String> cleanedLines = new ArrayList<>();
         Duration lastTimestamp = null;
+        StringBuilder currentTextAccumulator = new StringBuilder();
+        String lastAddedLine = null;
 
         Matcher matcher = BLOCK_PATTERN.matcher(rawText);
         while (matcher.find()) {
@@ -40,15 +42,27 @@ public class SubtitleCleaner implements ContentProcessor {
 
             Duration timestamp = parseTimestamp(timestampStr);
             if (lastTimestamp == null || timestamp.minus(lastTimestamp).getSeconds() >= minTimestampGapSeconds) {
+                if (currentTextAccumulator.length() > 0) {
+                    cleanedLines.add(currentTextAccumulator.toString().trim());
+                    currentTextAccumulator.setLength(0);
+                }
                 cleanedLines.add("\n[" + formatTimestamp(timestamp) + "]");
                 lastTimestamp = timestamp;
             }
 
             for (String line : lines) {
-                if (cleanedLines.isEmpty() || !line.equals(cleanedLines.get(cleanedLines.size() - 1))) {
-                    cleanedLines.add(line);
+                if (lastAddedLine == null || !line.equals(lastAddedLine)) {
+                    if (currentTextAccumulator.length() > 0 && !currentTextAccumulator.toString().endsWith("\n")) {
+                        currentTextAccumulator.append(" ");
+                    }
+                    currentTextAccumulator.append(line);
+                    lastAddedLine = line;
                 }
             }
+        }
+
+        if (currentTextAccumulator.length() > 0) {
+            cleanedLines.add(currentTextAccumulator.toString().trim());
         }
 
         return postProcessText(cleanedLines);
@@ -76,27 +90,15 @@ public class SubtitleCleaner implements ContentProcessor {
                 continue;
             }
 
-            if (i > 0 && !processed.isEmpty()) {
-                String last = processed.get(processed.size() - 1);
-                if (last.endsWith(".") || last.endsWith("!") || last.endsWith("?") || last.endsWith("…")) {
-                    line = line.substring(0, 1).toUpperCase() + line.substring(1);
-                }
+            // Capitalize first letter of a text block
+            if (!line.isEmpty()) {
+                line = line.substring(0, 1).toUpperCase() + line.substring(1);
             }
 
-            if (!line.endsWith(".") && !line.endsWith("!") && !line.endsWith("?") && !line.endsWith("…")) {
-                line += ".";
-            }
             processed.add(line);
         }
 
         String text = String.join("\n", processed).trim();
-        if (!text.isEmpty()) {
-            Matcher m = Pattern.compile("[a-zA-Zа-яА-Я]").matcher(text);
-            if (m.find()) {
-                int start = m.start();
-                text = text.substring(0, start) + text.substring(start, start + 1).toUpperCase() + text.substring(start + 1);
-            }
-        }
         return text;
     }
 
