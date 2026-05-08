@@ -35,13 +35,18 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Reduced default filename limit to 60 characters to ensure compatibility with OS filename limits during conversion/download.
 - **Universal URL Handling**: Verified and improved support for both single videos and playlists.
 
+- **Playlist Folders**:
+  - Implemented automatic creation of subdirectories for playlist content. `YtdlManager` now fetches the playlist title and organizes downloads into corresponding folders.
 - **Subtitle Quality & Maintenance**:
+  - Refactored `SubtitleCleaner` to decouple paragraph breaks from timestamp headers, strictly enforcing a 600-800 character limit per paragraph for better readability.
   - Significantly expanded the stop-words list (now `STOP_WORDS`) to exclude pronouns, common adverbs, and generic particles from keyword extraction, ensuring more meaningful summaries.
   - Improved `SubtitleCleaner` by adding more filler words ("эм", "ам", "ээ") and fixing punctuation errors where dots were incorrectly left after prepositions (e.g., "с. Победой" -> "с Победой").
   - Updated `.gitignore` to exclude `txt/` and `output/` directories.
 - **Metadata Extraction**:
   - Implemented `MetadataDownloader` and `MetadataTask` to extract video description and info (tags, stats) to JSON files.
   - Added `metadata` task type (`-t metadata`) which saves files to `output/metadata/`.
+- **UI Improvements**:
+  - Added numeric language selection (1-en, 2-ru, 3-uk) for subtitles in interactive mode.
 
 ## Pending Items
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.

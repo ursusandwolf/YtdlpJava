@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [1.3.2] - 2026-05-08
 
 ### Added
+- **Playlist Folders**: Automatically create subdirectories for playlist content (e.g., `output/audio/PlaylistName/`) to keep downloads organized.
 - **Metadata Extraction**: Introduced `MetadataTask` and `MetadataDownloader` accessible via `-t metadata`. This feature downloads video descriptions and metadata (tags, views, categories) as a JSON file, automatically saving them to `output/metadata/`.
+- **Improved UI**: Added numeric selection (1-en, 2-ru, 3-uk) for subtitle languages in interactive mode.
 
 ### Fixed
 - **Subtitle Cleaning**:
-  - Expanded the stop-words list to exclude pronouns ("себя", "тебе", "нас"), adverbs ("где", "почему", "дальше"), and common particles ("нет") from keyword extraction.
+  - Expanded the stop-words list to exclude pronouns ("себя", "тебе", "нас", "мне", "ему", "него"), adverbs ("где", "почему", "дальше"), and common particles ("нет") from keyword extraction.
+  - Improved paragraph formatting: paragraphs are now decoupled from timestamp headers and strictly capped at 600-800 characters for better readability.
   - Added more filler words to the removal list: "эм", "ам", "ээ".
   - Fixed a punctuation bug where dots were incorrectly preserved after short prepositions (e.g., "с.", "в.").
 - **Maintenance**: Updated `.gitignore` to exclude `txt/` and `output/` directories.
