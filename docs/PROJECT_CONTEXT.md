@@ -35,7 +35,10 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Reduced default filename limit to 60 characters to ensure compatibility with OS filename limits during conversion/download.
 - **Universal URL Handling**: Verified and improved support for both single videos and playlists.
 
+- **Metadata Extraction**:
+  - Implemented `MetadataDownloader` and `MetadataTask` to extract video description and info (tags, stats) to JSON files.
+  - Added `metadata` task type (`-t metadata`) which saves files to `output/metadata/`.
+
 ## Pending Items
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.
 - [ ] Implement retry logic for failed `yt-dlp` commands.
-- [ ] Support for more video metadata extraction (tags, description).

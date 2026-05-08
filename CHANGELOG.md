@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [1.3.2] - 2026-05-08
 
+### Added
+- **Metadata Extraction**: Introduced `MetadataTask` and `MetadataDownloader` accessible via `-t metadata`. This feature downloads video descriptions and metadata (tags, views, categories) as a JSON file, automatically saving them to `output/metadata/`.
+
 ### Fixed
 - **Subtitle Cleaning**: Significant improvements to text quality and readability.
   - Added **keyword extraction and highlighting**: top 30 words are automatically identified and bolded (with an expanded stop-words list to filter out generic terms).

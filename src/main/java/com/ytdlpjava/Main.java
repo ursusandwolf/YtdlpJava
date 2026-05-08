@@ -18,7 +18,7 @@ public class Main {
     @Parameter(names = {"-o", "--output_dir"}, description = "Папка для сохранения результата")
     private String outputDir = "output";
 
-    @Parameter(names = {"-t", "--type"}, description = "Тип загрузки: sub (субтитры), audio (аудио), screenshot (скриншоты), video (видео)")
+    @Parameter(names = {"-t", "--type"}, description = "Тип загрузки: sub (субтитры), audio (аудио), screenshot (скриншоты), video (видео), metadata (метаданные)")
     private String type = "sub";
 
     @Parameter(names = {"--format"}, description = "Формат аудио (opus, mp3, m4a)")
@@ -66,6 +66,7 @@ public class Main {
                 System.out.println("2. Аудио (audio)");
                 System.out.println("3. Видео (video)");
                 System.out.println("4. Скриншоты (screenshot)");
+                System.out.println("5. Метаданные (metadata)");
                 System.out.print("Введите номер (по умолчанию 1): ");
                 
                 String typeChoice = scanner.nextLine().trim();
@@ -73,6 +74,7 @@ public class Main {
                     case "2" -> "audio";
                     case "3" -> "video";
                     case "4" -> "screenshot";
+                    case "5" -> "metadata";
                     default -> "sub";
                 };
 
@@ -97,6 +99,7 @@ public class Main {
                 case "audio" -> "output/audio";
                 case "video" -> "output/video";
                 case "screenshot" -> "output/img";
+                case "metadata" -> "output/metadata";
                 default -> main.outputDir;
             };
         }
@@ -120,6 +123,7 @@ public class Main {
         return switch (main.type.toLowerCase()) {
             case "audio" -> new AudioDownloader(executor, main.audioFormat, main.audioQuality);
             case "sub" -> new SubtitleDownloader(executor, main.lang);
+            case "metadata" -> new MetadataDownloader(executor);
             default -> new VideoDownloader(executor);
         };
     }
@@ -129,6 +133,7 @@ public class Main {
             case "audio" -> new AudioTask(downloader, filenameProvider);
             case "video" -> new VideoDownloadTask(downloader, filenameProvider);
             case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, main.interval);
+            case "metadata" -> new MetadataTask(downloader, filenameProvider);
             case "sub" -> {
                 ContentProcessor processor = new SubtitleCleaner(180);
                 yield new SubtitleTask(downloader, processor, filenameProvider);
