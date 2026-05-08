@@ -8,8 +8,12 @@ All notable changes to this project will be documented in this file.
 - **Metadata Extraction**: Introduced `MetadataTask` and `MetadataDownloader` accessible via `-t metadata`. This feature downloads video descriptions and metadata (tags, views, categories) as a JSON file, automatically saving them to `output/metadata/`.
 
 ### Fixed
-- **Subtitle Cleaning**: Significant improvements to text quality and readability.
-  - Added **keyword extraction and highlighting**: top 30 words are automatically identified and bolded (with an expanded stop-words list to filter out generic terms).
+- **Subtitle Cleaning**:
+  - Added more filler words to the removal list: "эм", "ам", "ээ".
+  - Fixed a punctuation bug where dots were incorrectly preserved after short prepositions (e.g., "с.", "в.").
+- **Maintenance**: Updated `.gitignore` to exclude `txt/` and `output/` directories.
+- **Advanced Subtitle Quality Improvements**:
+  - Implemented **keyword extraction and highlighting**: top 30 words are automatically identified and bolded (with an expanded stop-words list to filter out generic terms).
   - Added **Keywords Summary** section at the end of the file.
   - Switched output to **Markdown (.md)** format with headers for timestamps, **automatic line wrapping** (95 chars), and strict **sentence/paragraph limits** (300/600 chars).
   - Improved **paragraph breaking**: breaks now intelligently wait for sentence endings to avoid disjointed text.

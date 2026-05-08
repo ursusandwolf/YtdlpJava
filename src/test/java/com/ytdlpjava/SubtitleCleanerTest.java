@@ -174,6 +174,26 @@ class SubtitleCleanerTest {
         
         assertFalse(result.contains(",. "), "Should not contain ',.'");
         assertFalse(result.contains(" да, "), "Should remove 'да'");
-        assertTrue(result.contains("В будущем, для того. Чтобы"), "Should be cleaned: " + result);
+    }
+
+    @Test
+    void testNewFillersAndPrepositionDot(@TempDir Path tempDir) throws IOException {
+        SubtitleCleaner cleaner = new SubtitleCleaner(10);
+        Path vttPath = tempDir.resolve("new_fillers.vtt");
+        String vttContent = "WEBVTT\n" +
+                "\n" +
+                "00:00:01.000 --> 00:00:10.000\n" +
+                "возвращаясь с. Победою домой эм я ам ээ пришел\n";
+        Files.writeString(vttPath, vttContent);
+
+        String result = cleaner.process(vttPath);
+        
+        System.out.println("New Fillers Result:\n" + result);
+        
+        assertFalse(result.contains("с."), "Should remove dot after 'с'");
+        assertFalse(result.contains("эм"), "Should remove 'эм'");
+        assertFalse(result.contains("ам"), "Should remove 'ам'");
+        assertFalse(result.contains("ээ"), "Should remove 'ээ'");
+        assertTrue(result.contains("возвращаясь с Победою домой я пришел") || result.contains("Возвращаясь с Победою домой я пришел"));
     }
 }

@@ -18,7 +18,7 @@ public class SubtitleCleaner implements ContentProcessor {
     private static final Pattern SPEAKER_TAGS = Pattern.compile("\\[.*?\\]");
     
     private static final String[] FILLERS = {
-            "э-э", "а-а", "ну", "так скажем", "как бы", "вот", "значит", "собственно", "в общем", "э", "а", "да"
+            "э-э", "а-а", "эм", "ам", "ээ", "ну", "так скажем", "как бы", "вот", "значит", "собственно", "в общем", "э", "а", "да"
     };
     
     private static final String[] PREPOSITIONS = {
@@ -194,6 +194,9 @@ public class SubtitleCleaner implements ContentProcessor {
         result = result.replaceAll(",+", ",");          // ",," -> ","
         result = result.replaceAll("\\.{2,}", ".");     // ".." -> "."
         
+        // Fix dots after short prepositions (e.g., "с. Победой" -> "с Победой")
+        result = result.replaceAll("(?iu)(^|\\s)(в|на|с|из|к|по|о|у|а|и)\\s*\\.\\s*", "$1$2 ");
+        
         return result.replaceAll("\\s+", " ").trim();
     }
 
@@ -226,7 +229,7 @@ public class SubtitleCleaner implements ContentProcessor {
             line = splitLongSentences(line, 300);
             
             // Re-capitalize after forced splits, but respect initial capitalization
-            boolean startsWithUpper = Character.isUpperCase(line.charAt(0));
+            boolean startsWithUpper = line.length() > 0 && Character.isUpperCase(line.charAt(0));
             line = capitalizeAfterSplit(line, startsWithUpper);
 
             processed.add(wrapText(line, 95));
@@ -236,6 +239,7 @@ public class SubtitleCleaner implements ContentProcessor {
     }
 
     private String capitalizeAfterSplit(String text, boolean startsWithUpper) {
+        if (text == null || text.isEmpty()) return text;
         StringBuilder sb = new StringBuilder();
         boolean nextUpper = startsWithUpper;
         boolean firstLetterFound = false;
