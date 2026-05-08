@@ -16,6 +16,10 @@ public class SubtitleCleaner implements ContentProcessor {
     private static final Pattern BLOCK_PATTERN = Pattern.compile("(\\d{2}:\\d{2}:\\d{2}\\.\\d{3}) --> .*?\\n(.*?)(?=\\n\\n|\\Z)", Pattern.DOTALL);
     private static final Pattern HTML_TAGS = Pattern.compile("<[^>]+>");
     private static final Pattern SPEAKER_TAGS = Pattern.compile("\\[.*?\\]");
+    
+    private static final String[] FILLERS = {
+            "э-э", "а-а", "ну", "так скажем", "как бы", "вот", "значит", "собственно", "в общем"
+    };
 
     private final int minTimestampGapSeconds;
 
@@ -74,11 +78,24 @@ public class SubtitleCleaner implements ContentProcessor {
         for (String line : lines) {
             line = HTML_TAGS.matcher(line).replaceAll("");
             line = SPEAKER_TAGS.matcher(line).replaceAll("");
+            
+            line = smartCleanFillers(line);
+            
             line = line.replaceAll("\\s+", " ");
             line = unescapeHtml(line.trim());
             if (!line.isEmpty()) cleaned.add(line);
         }
         return cleaned;
+    }
+
+    private String smartCleanFillers(String line) {
+        String result = line;
+        for (String filler : FILLERS) {
+            // Cyrillic-aware boundary: start of line or non-letter, end of line or non-letter
+            String pattern = "(?iu)(?<=^|[^а-яёa-z])" + Pattern.quote(filler) + "(?=[^а-яёa-z]|$)[,\\s-]*";
+            result = result.replaceAll(pattern, " ");
+        }
+        return result.replaceAll("\\s+", " ").trim();
     }
 
     private String postProcessText(List<String> lines) {
@@ -90,16 +107,30 @@ public class SubtitleCleaner implements ContentProcessor {
                 continue;
             }
 
-            // Capitalize first letter of a text block
             if (!line.isEmpty()) {
-                line = line.substring(0, 1).toUpperCase() + line.substring(1);
+                boolean shouldCapitalize = true;
+                if (i > 1) {
+                    String prevText = lines.get(i - 2);
+                    if (!prevText.isEmpty() && !isSentenceEnding(prevText.charAt(prevText.length() - 1))) {
+                        shouldCapitalize = false;
+                    }
+                }
+                
+                if (shouldCapitalize) {
+                    line = line.substring(0, 1).toUpperCase() + line.substring(1);
+                } else {
+                    line = line.substring(0, 1).toLowerCase() + line.substring(1);
+                }
             }
 
             processed.add(line);
         }
 
-        String text = String.join("\n", processed).trim();
-        return text;
+        return String.join("\n", processed).trim();
+    }
+
+    private boolean isSentenceEnding(char c) {
+        return c == '.' || c == '!' || c == '?' || c == '…';
     }
 
     private Duration parseTimestamp(String ts) {

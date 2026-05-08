@@ -4,11 +4,12 @@
 The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
 
 ## Recent Changes (2026-05-08)
-- **Improved Subtitle Cleaning Logic**: Refactored `SubtitleCleaner` to produce more natural text.
-  - Subtitle lines are now joined into paragraphs between timestamp headers, significantly reducing line breaks.
-  - Removed aggressive automatic dot addition at the end of every subtitle line, which was causing "too many dots" in auto-generated subtitles.
-  - Improved de-duplication of scrolling VTT lines within paragraphs.
-  - Added comprehensive tests for auto-generated and scrolling subtitles.
+- **Advanced Subtitle Quality Improvements**:
+  - Implemented **smart filler word cleaning**: automatically removes "э-э", "ну", "как бы" and other common fillers using Cyrillic-aware regex.
+  - Implemented **smart sentence joining**: the cleaner now detects if a block is a continuation of a previous sentence and avoids incorrect capitalization.
+  - Refactored `SubtitleCleaner` to join lines into paragraphs between timestamp headers.
+  - Improved de-duplication of scrolling VTT lines.
+  - Added comprehensive unit tests for all new cleaning features.
 - **Fixed Subtitle Path Resolution**: (2026-05-05) ...
   - Removed reliance on `yt-dlp --print after_move:filepath` for subtitles as it returns empty with `--skip-download`.
   - Implemented a search mechanism to find the `.vtt` or `.srt` file created by `yt-dlp` based on the requested language and output basename.
