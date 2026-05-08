@@ -45,6 +45,11 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - **Metadata Extraction**:
   - Implemented `MetadataDownloader` and `MetadataTask` to extract video description and info (tags, stats) to JSON files.
   - Added `metadata` task type (`-t metadata`) which saves files to `output/metadata/`.
+- **Improved English Keyword Extraction**: (2026-05-08)
+  - Created a comprehensive English stop-words dictionary (`src/main/resources/dictionaries/stop_words_en.txt`).
+  - Updated `SubtitleCleaner` to dynamically load stop-words based on the subtitle language.
+  - Implemented basic English stemming (plurals, -ing, -ed) in `KeywordAnalyzer`.
+  - Refined keyword summary to always show the top 30 most frequent words while keeping bolding for terms occurring 2+ times.
 - **Major Architectural Refactoring**: (2026-05-08)
   - Refactored `SubtitleCleaner` (God Class) into specialized components: `SubtitleParser`, `SubtitleCleanerService`, `KeywordAnalyzer`, and `MarkdownFormatter` for better SRP compliance.
   - Externalized `STOP_WORDS` and `FILLERS` from code to resource files (`src/main/resources/dictionaries/`).

@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [1.3.2] - 2026-05-08
 
 ### Added
+- **Improved English Keyword Extraction**:
+  - Added a dedicated English stop-words dictionary to filter out common noise words.
+  - Implemented language-aware stop-word loading and basic English stemming.
+  - Refined keyword highlighting logic for better readability.
 - **Major Architectural Refactoring**:
   - Refactored `SubtitleCleaner` (God Class) into specialized components: `SubtitleParser`, `SubtitleCleanerService`, `KeywordAnalyzer`, and `MarkdownFormatter` for better SRP compliance.
   - Externalized `STOP_WORDS` and `FILLERS` to resource files (`src/main/resources/dictionaries/`).

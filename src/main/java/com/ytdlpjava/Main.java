@@ -102,7 +102,7 @@ public class Main {
             case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, main.interval);
             case "metadata" -> new MetadataTask(downloader, filenameProvider);
             case "sub" -> {
-                ContentProcessor processor = new SubtitleCleaner(180);
+                ContentProcessor processor = new SubtitleCleaner(180, main.lang);
                 yield new SubtitleTask(downloader, processor, filenameProvider);
             }
             default -> throw new IllegalArgumentException("Unknown type: " + main.type);

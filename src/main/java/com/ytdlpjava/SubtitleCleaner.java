@@ -1,6 +1,5 @@
 package com.ytdlpjava;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -11,19 +10,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 public class SubtitleCleaner implements ContentProcessor {
     private final int minTimestampGapSeconds;
+    private final String lang;
     private final SubtitleParser parser = new SubtitleParser();
-    private final SubtitleCleanerService cleanerService = new SubtitleCleanerService(
-            DictionaryLoader.load("/dictionaries/fillers.txt"));
-    private final KeywordAnalyzer analyzer = new KeywordAnalyzer(
-            DictionaryLoader.load("/dictionaries/stop_words_ru.txt"));
+    private final SubtitleCleanerService cleanerService;
+    private final KeywordAnalyzer analyzer;
     private final MarkdownFormatter formatter = new MarkdownFormatter();
+
+    public SubtitleCleaner(int minTimestampGapSeconds, String lang) {
+        this.minTimestampGapSeconds = minTimestampGapSeconds;
+        this.lang = lang != null ? lang.toLowerCase() : "en";
+        
+        this.cleanerService = new SubtitleCleanerService(
+                DictionaryLoader.load("/dictionaries/fillers.txt"));
+        
+        // Load combined stop words (generic + language specific)
+        List<String> stopWords = new ArrayList<>();
+        stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_ru.txt"));
+        if ("en".equals(this.lang)) {
+            stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
+        }
+        
+        this.analyzer = new KeywordAnalyzer(stopWords);
+    }
 
     @Override
     public String process(Path vttPath) throws IOException {
-        log.info("Cleaning subtitles: {}", vttPath.getFileName());
+        log.info("Cleaning subtitles ({}): {}", lang, vttPath.getFileName());
         String rawText = Files.readString(vttPath, StandardCharsets.UTF_8);
         
         List<SubtitleParser.SubtitleBlock> blocks = parser.parse(rawText);

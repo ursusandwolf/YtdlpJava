@@ -21,7 +21,7 @@ public class KeywordAnalyzer {
         while (m.find()) {
             String original = m.group().toLowerCase();
             if (!stopWords.contains(original)) {
-                String stem = stemRussian(original);
+                String stem = stemWord(original);
                 stemCounts.put(stem, stemCounts.getOrDefault(stem, 0) + 1);
                 stemmedToOriginals.computeIfAbsent(stem, k -> new ArrayList<>()).add(original);
             }
@@ -67,8 +67,34 @@ public class KeywordAnalyzer {
         return result.toString();
     }
 
-    private String stemRussian(String word) {
+    private String stemWord(String word) {
         if (word.length() < 4) return word;
+        
+        // Russian check
+        if (word.matches(".*[а-яё].*")) {
+            return stemRussian(word);
+        }
+        
+        // Basic English stemming
+        String stem = word;
+        if (stem.endsWith("ies") && !stem.endsWith("eies") && !stem.endsWith("aies")) {
+            stem = stem.substring(0, stem.length() - 3) + "i";
+        } else if (stem.endsWith("es") && (stem.endsWith("ses") || stem.endsWith("xes") || stem.endsWith("ches") || stem.endsWith("shes"))) {
+            stem = stem.substring(0, stem.length() - 2);
+        } else if (stem.endsWith("s") && !stem.endsWith("ss") && !stem.endsWith("us")) {
+            stem = stem.substring(0, stem.length() - 1);
+        }
+        
+        if (stem.endsWith("ing")) {
+            stem = stem.substring(0, stem.length() - 3);
+        } else if (stem.endsWith("ed")) {
+            stem = stem.substring(0, stem.length() - 2);
+        }
+        
+        return stem;
+    }
+
+    private String stemRussian(String word) {
         String stem = word;
         stem = stem.replaceAll("(иями|ями|ами|ией|ию|ия|ие|ии|ей|ой|ам|ом|а|я|о|е|ы|и|ь)$", "");
         stem = stem.replaceAll("(ому|ему|ого|его|ыми|ими|ых|их|ую|юю|ая|яя|ое|ее|ый|ий|ой|ей)$", "");
