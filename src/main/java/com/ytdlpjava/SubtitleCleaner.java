@@ -41,7 +41,9 @@ public class SubtitleCleaner implements ContentProcessor {
             "кажется", "значит", "вообще", "именно", "вместе", "однако", "снова", "опять", "прямо", "совсем", "только", "почти",
             "разве", "чтобы", "будто", "словно", "хотя", "если", "пока", "когда", "потому", "поэтому", "значит", "через",
             "наверное", "возможно", "конечно", "надо", "будет", "было", "был", "была", "были", "быть", "есть", "нет",
-            "этого", "этому", "этим", "этом", "этой", "эту", "теми", "тех", "том", "тем", "тому", "того", "той", "этими", "эти", "эта", "этот"
+            "этого", "этому", "этим", "этом", "этой", "эту", "теми", "тех", "том", "тем", "тому", "того", "той", "этими", "эти", "эта", "этот",
+            "мне", "меня", "ему", "него", "ней", "неё", "них", "её", "ее", "его", "своей", "своим", "своих", "своими", "своем", "своём",
+            "наша", "наше", "наши", "наших", "нашим", "нашими", "ваша", "ваше", "ваши", "ваших", "вашим", "вашими"
     };
 
     private final int minTimestampGapSeconds;
@@ -78,10 +80,18 @@ public class SubtitleCleaner implements ContentProcessor {
                 items.add("### [" + formatTimestamp(timestamp) + "]");
                 lastTimestampHeader = timestamp;
             } 
-            // Should we insert a PARAGRAPH BREAK (length limit 600 + sentence end)?
-            else if (currentParagraph.length() > 600 && isSentenceEnding(currentParagraph.charAt(currentParagraph.length() - 1))) {
-                items.add(currentParagraph.toString().trim());
-                currentParagraph.setLength(0);
+            // Should we insert a PARAGRAPH BREAK (length limit 600)?
+            else if (currentParagraph.length() > 600) {
+                // Try to break at sentence end first
+                if (isSentenceEnding(currentParagraph.charAt(currentParagraph.length() - 1))) {
+                    items.add(currentParagraph.toString().trim());
+                    currentParagraph.setLength(0);
+                } 
+                // If it's getting TOO long (e.g. > 800), force a break even without a dot
+                else if (currentParagraph.length() > 800) {
+                    items.add(currentParagraph.toString().trim());
+                    currentParagraph.setLength(0);
+                }
             }
 
             for (String line : lines) {
