@@ -32,7 +32,9 @@ public class SubtitleCleaner implements ContentProcessor {
             "меньше", "лучше", "хуже", "совсем", "совсем", "вместе", "совсем", "почти", "снова", "опять", "так", "как", "какой", "такой",
             "какая", "такая", "какое", "такое", "какие", "такие", "который", "которая", "которое", "которые", "кто", "что", "чей", "чья",
             "чье", "чьи", "сам", "сама", "само", "сами", "весь", "вся", "все", "всё", "много", "мало", "сколько", "столько", "несколько",
-            "видим", "видите", "знаем", "знаете", "понимаем", "понимаете", "например", "вообще", "наверное", "возможно", "конечно"
+            "видим", "видите", "знаем", "знаете", "понимаем", "понимаете", "например", "вообще", "наверное", "возможно", "конечно",
+            "далее", "будем", "тоже", "ещё", "еще", "надо", "поэтому", "этой", "этого", "этим", "этом", "которых", "которые", "какая",
+            "какой", "такой", "такие", "свои", "своих", "будет", "быть", "может", "могут", "видеть", "видят", "хотят", "хочет"
     };
 
     private final int minTimestampGapSeconds;
@@ -91,43 +93,76 @@ public class SubtitleCleaner implements ContentProcessor {
     }
 
     private String addKeywordsSummary(String text) {
-        Map<String, Integer> wordCounts = new HashMap<>();
-        // Simple regex for words, supporting Cyrillic
-        Matcher m = Pattern.compile("(?iu)[а-яёa-z]{3,}").matcher(text);
+        Map<String, List<String>> stemmedToOriginals = new HashMap<>();
+        Map<String, Integer> stemCounts = new HashMap<>();
         
+        Matcher m = Pattern.compile("(?iu)[а-яёa-z]{3,}").matcher(text);
         Set<String> ignoreList = new HashSet<>(Arrays.asList(PREPOSITIONS));
         
         while (m.find()) {
-            String word = m.group().toLowerCase();
-            if (!ignoreList.contains(word)) {
-                wordCounts.put(word, wordCounts.getOrDefault(word, 0) + 1);
+            String original = m.group().toLowerCase();
+            if (!ignoreList.contains(original)) {
+                String stem = stemRussian(original);
+                stemCounts.put(stem, stemCounts.getOrDefault(stem, 0) + 1);
+                stemmedToOriginals.computeIfAbsent(stem, k -> new ArrayList<>()).add(original);
             }
         }
         
-        List<Map.Entry<String, Integer>> topKeywords = wordCounts.entrySet().stream()
+        List<Map.Entry<String, Integer>> topStems = stemCounts.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(30)
                 .collect(Collectors.toList());
                 
-        if (topKeywords.isEmpty()) return text;
+        if (topStems.isEmpty()) return text;
+        
+        // Map stem back to the most frequent original word form
+        Map<String, String> stemToDisplayWord = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : topStems) {
+            String stem = entry.getKey();
+            List<String> originals = stemmedToOriginals.get(stem);
+            String mostFrequentOriginal = originals.stream()
+                    .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
+                    .entrySet().stream()
+                    .max(Map.Entry.comparingByValue())
+                    .get().getKey();
+            stemToDisplayWord.put(stem, mostFrequentOriginal);
+        }
         
         String highlightedText = text;
-        for (Map.Entry<String, Integer> entry : topKeywords) {
+        for (Map.Entry<String, Integer> entry : topStems) {
             if (entry.getValue() >= 2) {
-                String word = entry.getKey();
-                // Bold the word, making sure not to double-bold or bold within bold
-                String pattern = "(?iu)(?<!\\*\\*)\\b(" + Pattern.quote(word) + ")\\b(?!\\*\\*)";
-                highlightedText = highlightedText.replaceAll(pattern, "**$1**");
+                String stem = entry.getKey();
+                // Find all unique variations in text that match this stem
+                Set<String> variations = new HashSet<>(stemmedToOriginals.get(stem));
+                for (String word : variations) {
+                    String pattern = "(?iu)(?<!\\*\\*)\\b(" + Pattern.quote(word) + ")\\b(?!\\*\\*)";
+                    highlightedText = highlightedText.replaceAll(pattern, "**$1**");
+                }
             }
         }
         
         StringBuilder result = new StringBuilder(highlightedText);
         result.append("\n\n---\n### Ключевые слова:\n");
-        for (Map.Entry<String, Integer> entry : topKeywords) {
-            result.append("- **").append(entry.getKey()).append("**: ").append(entry.getValue()).append("\n");
+        for (Map.Entry<String, Integer> entry : topStems) {
+            result.append("- **").append(stemToDisplayWord.get(entry.getKey())).append("**: ").append(entry.getValue()).append("\n");
         }
         
         return result.toString();
+    }
+
+    private String stemRussian(String word) {
+        // Very basic Russian stemming (stripping common endings)
+        if (word.length() < 4) return word;
+        
+        String stem = word;
+        // Common endings for cases/plurals
+        stem = stem.replaceAll("(иями|ями|ами|ией|ию|ия|ие|ии|ей|ой|ам|ом|а|я|о|е|ы|и|ь)$", "");
+        // Adjective endings
+        stem = stem.replaceAll("(ому|ему|ого|его|ыми|ими|ых|их|ую|юю|ая|яя|ое|ее|ый|ий|ой|ей)$", "");
+        // Verb endings (very basic)
+        stem = stem.replaceAll("(ешь|ет|ем|ете|ут|ют|ишь|ит|им|ите|ат|ят|л|ла|ло|ли|ть|ти)$", "");
+        
+        return stem;
     }
 
     private List<String> cleanTextBlock(String textBlock) {
