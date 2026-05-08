@@ -106,7 +106,7 @@ public class SubtitleCleaner implements ContentProcessor {
         
         List<Map.Entry<String, Integer>> topKeywords = wordCounts.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(10)
+                .limit(30)
                 .collect(Collectors.toList());
                 
         if (topKeywords.isEmpty()) return text;

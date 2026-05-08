@@ -5,7 +5,7 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 
 ## Recent Changes (2026-05-08)
 - **Advanced Subtitle Quality Improvements**:
-  - Implemented **keyword extraction and highlighting**: automatically identifies the top 10 most frequent keywords (ignoring an expanded list of prepositions, pronouns, and common verbs) and highlights them in **bold** throughout the text.
+  - Implemented **keyword extraction and highlighting**: automatically identifies the top 30 most frequent keywords (ignoring an expanded list of prepositions, pronouns, and common verbs) and highlights them in **bold** throughout the text.
   - Improved **filler word cleaning**: expanded detection to include "да" and implemented robust punctuation cleanup to prevent errors like ",.".
   - Enhanced **capitalization logic**: added a step to ensure correct sentence case after any punctuation cleanup or forced sentence splits.
   - Added a **Keywords Summary** section at the end of the subtitle file.
