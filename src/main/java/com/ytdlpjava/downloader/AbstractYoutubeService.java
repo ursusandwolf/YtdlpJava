@@ -124,7 +124,7 @@ public abstract class AbstractYoutubeService implements Downloader {
         List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--flat-playlist", "--print", "playlist_title", url);
         try {
             String output = runResiliently(command, "Failed to fetch playlist title");
-            return output.trim();
+            return output.lines().findFirst().orElse("Unknown_Playlist").trim();
         } catch (Exception e) {
             log.warn("Could not fetch playlist title for {}. Error: {}", url, e.getMessage());
             return "Unknown_Playlist";
