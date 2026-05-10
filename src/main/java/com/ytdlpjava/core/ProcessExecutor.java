@@ -18,11 +18,6 @@ public class ProcessExecutor {
 
     public String run(List<String> command, String errorMessage, long timeout, TimeUnit unit) throws IOException, InterruptedException {
         List<String> finalCommand = new ArrayList<>(command);
-        // Add JS runtime if it's a yt-dlp command and not already present
-        if (!finalCommand.isEmpty() && "yt-dlp".equals(finalCommand.get(0)) && !finalCommand.contains("--js-runtimes")) {
-            finalCommand.add(1, "--js-runtimes");
-            finalCommand.add(2, "node");
-        }
 
         log.debug("Executing command: {}", String.join(" ", finalCommand));
         
@@ -39,10 +34,15 @@ public class ProcessExecutor {
                     log.info(line); // Real-time progress logging
                     output.append(line).append("\n");
                     
-                    // Path extraction: look for absolute paths or specific yt-dlp patterns
+                    // Path extraction: look for absolute paths or existing files
                     String trimmedLine = line.trim();
-                    if (trimmedLine.startsWith("/") || (trimmedLine.length() > 2 && trimmedLine.charAt(1) == ':')) {
-                        resultPath = trimmedLine;
+                    try {
+                        java.nio.file.Path possiblePath = java.nio.file.Path.of(trimmedLine);
+                        if (!trimmedLine.startsWith("[") && java.nio.file.Files.exists(possiblePath) && java.nio.file.Files.isRegularFile(possiblePath)) {
+                            resultPath = trimmedLine;
+                        }
+                    } catch (java.nio.file.InvalidPathException | SecurityException ignored) {
+                        // Ignore invalid paths
                     }
                 }
             }

@@ -72,9 +72,7 @@ public class Main {
             return;
         }
 
-        main.videoUrl = (main.videoUrls != null && !main.videoUrls.isEmpty()) ? main.videoUrls.get(0) : null;
-
-        if (main.videoUrl == null) {
+        if (main.videoUrls == null || main.videoUrls.isEmpty()) {
             new InteractivePromptService().runInteractive(main);
         }
 
@@ -97,7 +95,13 @@ public class Main {
 
         YtdlManager manager = new YtdlManager(task, downloader);
         try {
-            manager.process(main.videoUrl, Path.of(main.outputDir));
+            if (main.videoUrls != null && !main.videoUrls.isEmpty()) {
+                for (String url : main.videoUrls) {
+                    manager.process(url, Path.of(main.outputDir));
+                }
+            } else if (main.videoUrl != null) {
+                manager.process(main.videoUrl, Path.of(main.outputDir));
+            }
         } catch (Exception e) {
             log.error("Process failed: {}", e.getMessage());
             System.exit(1);

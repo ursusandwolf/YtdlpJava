@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.12] - 2026-05-10
+
+### Changed
+- **Code Quality & Reliability Improvements**:
+  - Fixed English keyword stemmer to prevent aggressive truncation (e.g., "singing" -> "sing") by enforcing length checks.
+  - Refactored `ProcessExecutor` to separate `yt-dlp` specific arguments (`--js-runtimes node`) and moved them to `AbstractYoutubeService`, adhering to SRP.
+  - Improved `ProcessExecutor` path extraction to check for existing files instead of relying on fragile string prefixes.
+  - Updated `Main` to properly iterate over and process a list of multiple `videoUrls` passed via CLI arguments.
+  - Optimized the regex loop and removed `System.out.println` debug statements in `KeywordAnalyzer`, substituting with `log.debug` via SLF4J.
+
 ## [1.3.11] - 2026-05-10
 
 ### Fixed

@@ -2,6 +2,7 @@ package com.ytdlpjava.processor;
 
 import com.ytdlpjava.model.ContentProcessor;
 import com.ytdlpjava.util.DictionaryLoader;
+import com.ytdlpjava.util.LemmatizerService;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,10 +20,12 @@ public class SubtitleCleaner implements ContentProcessor {
     private final SubtitleCleanerService cleanerService;
     private final KeywordAnalyzer analyzer;
     private final MarkdownFormatter formatter = new MarkdownFormatter();
+    private final LemmatizerService lemmatizer;
 
     public SubtitleCleaner(int minTimestampGapSeconds, String lang) {
         this.minTimestampGapSeconds = minTimestampGapSeconds;
         this.lang = lang != null ? lang.toLowerCase() : "en";
+        this.lemmatizer = new LemmatizerService();
         
         this.cleanerService = new SubtitleCleanerService(
                 DictionaryLoader.load("/dictionaries/fillers.txt"));
@@ -34,7 +37,8 @@ public class SubtitleCleaner implements ContentProcessor {
             stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
         }
         
-        this.analyzer = new KeywordAnalyzer(stopWords);
+        LemmatizerService.Language language = "ru".equals(this.lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
+        this.analyzer = new KeywordAnalyzer(stopWords, lemmatizer, language);
     }
 
     @Override
@@ -88,7 +92,8 @@ public class SubtitleCleaner implements ContentProcessor {
         }
 
         String mainText = formatter.format(items);
-        return analyzer.analyzeAndHighlight(mainText);
+        LemmatizerService.Language language = "ru".equals(this.lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
+        return analyzer.analyzeAndHighlight(mainText, language);
     }
 
     private String formatTimestamp(Duration d) {

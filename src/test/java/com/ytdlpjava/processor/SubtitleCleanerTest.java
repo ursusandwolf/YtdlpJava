@@ -222,8 +222,8 @@ class SubtitleCleanerTest {
         assertFalse(result.contains("- **нас**"), "Should exclude 'нас'");
         assertFalse(result.contains("- **нет**"), "Should exclude 'нет'");
         assertFalse(result.contains("- **где**"), "Should exclude 'где'");
-        assertFalse(result.contains("- **почему**"), "Should exclude 'почему'");
-        assertFalse(result.contains("- **дальше**"), "Should exclude 'дальше'");
-        assertFalse(result.contains("- **всем**"), "Should exclude 'всем'");
+        assertFalse(result.contains("- **поч**"), "Should exclude 'почему' (stem: поч)");
+        assertFalse(result.contains("- **дальш**"), "Should exclude 'дальше' (stem: дальш)");
+        assertFalse(result.contains("- **все**"), "Should exclude 'всем' (stem: все)");
     }
 }

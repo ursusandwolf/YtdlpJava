@@ -4,6 +4,11 @@
 The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
 
 ## Recent Changes (2026-05-10)
+- **Code Quality & Reliability Improvements**:
+  - Fixed English keyword stemmer to prevent aggressive truncation.
+  - Refactored `ProcessExecutor` to separate `yt-dlp` specific arguments and improved path extraction by checking for file existence.
+  - Updated `Main` to properly process multiple `videoUrls`.
+  - Optimized regex in `KeywordAnalyzer` and migrated logging to SLF4J.
 - **Advanced yt-dlp Resilience (v1.3.8)**:
   - Implemented a 5-stage "Deep Fallback" mechanism to handle "This live event has ended" and "Post-Live Manifestless mode" errors.
   - Added support for Node.js JS runtime in `ProcessExecutor` to bypass modern YouTube extraction challenges.

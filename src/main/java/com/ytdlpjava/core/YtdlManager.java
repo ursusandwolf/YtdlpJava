@@ -26,7 +26,9 @@ public class YtdlManager {
                 if (playlistTitle != null && !playlistTitle.isEmpty() && !"NA".equalsIgnoreCase(playlistTitle)) {
                     log.info("Raw playlist title: {}", playlistTitle);
                     String sanitizedTitle = task.getFilenameProvider().buildFilename(playlistTitle, 60);
+                    log.info("Sanitized playlist title: {}", sanitizedTitle);
                     effectiveOutputDir = outputDir.resolve(sanitizedTitle);
+                    log.info("Effective output directory: {}", effectiveOutputDir);
                     if (!Files.exists(effectiveOutputDir)) {
                         Files.createDirectories(effectiveOutputDir);
                         log.info("Created playlist directory: {}", effectiveOutputDir);

@@ -14,16 +14,22 @@ public abstract class AbstractYoutubeService implements Downloader {
     protected final ProcessExecutor executor;
 
     protected String runResiliently(List<String> command, String errorMessage) throws IOException, InterruptedException {
+        List<String> baseCommand = new ArrayList<>(command);
+        if (!baseCommand.isEmpty() && "yt-dlp".equals(baseCommand.get(0)) && !baseCommand.contains("--js-runtimes")) {
+            baseCommand.add(1, "--js-runtimes");
+            baseCommand.add(2, "node");
+        }
+
         // 1. Try original command (default)
         try {
-            return executor.run(command, errorMessage);
+            return executor.run(baseCommand, errorMessage);
         } catch (RuntimeException e) {
             log.warn("Default attempt failed: {}. Retrying with android client...", e.getMessage());
         }
 
         // 2. Try specifically with android
         try {
-            List<String> androidFallback = new ArrayList<>(command);
+            List<String> androidFallback = new ArrayList<>(baseCommand);
             androidFallback.add(1, "--extractor-args");
             androidFallback.add(2, "youtube:player_client=android");
             return executor.run(androidFallback, errorMessage);
@@ -33,7 +39,7 @@ public abstract class AbstractYoutubeService implements Downloader {
 
         // 3. Try with mweb client (often handles live-to-VOD transition better)
         try {
-            List<String> mwebFallback = new ArrayList<>(command);
+            List<String> mwebFallback = new ArrayList<>(baseCommand);
             mwebFallback.add(1, "--extractor-args");
             mwebFallback.add(2, "youtube:player_client=mweb");
             return executor.run(mwebFallback, errorMessage);
@@ -43,7 +49,7 @@ public abstract class AbstractYoutubeService implements Downloader {
 
         // 4. Try with embedded client
         try {
-            List<String> embeddedFallback = new ArrayList<>(command);
+            List<String> embeddedFallback = new ArrayList<>(baseCommand);
             embeddedFallback.add(1, "--extractor-args");
             embeddedFallback.add(2, "youtube:player_client=embedded");
             return executor.run(embeddedFallback, errorMessage);
@@ -52,13 +58,13 @@ public abstract class AbstractYoutubeService implements Downloader {
         }
 
         // 5. Try skipping DASH/HLS and configs + skip unavailable fragments + try all formats (last resort)
-        List<String> desperateFallback = new ArrayList<>(command);
+        List<String> desperateFallback = new ArrayList<>(baseCommand);
         desperateFallback.add(1, "--extractor-args");
         desperateFallback.add(2, "youtube:skip=dash,hls;player_skip=configs");
         desperateFallback.add("--skip-unavailable-fragments");
         
         // If it's a subtitle command, force stable formats as a last resort
-        if (command.contains("--write-auto-sub")) {
+        if (baseCommand.contains("--write-auto-sub")) {
             int subFormatIdx = desperateFallback.indexOf("--sub-format");
             if (subFormatIdx != -1) {
                 desperateFallback.set(subFormatIdx + 1, "vtt/json3/srv1/srv2/srv3/best");
