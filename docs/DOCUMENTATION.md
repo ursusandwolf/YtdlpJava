@@ -27,6 +27,7 @@ Advanced content processing logic (primarily for subtitles).
 
 ### `com.ytdlpjava.downloader`
 Implementations of the `Downloader` interface.
+- `AbstractYoutubeService`: Base class with a 5-stage resilience fallback strategy and **exponential backoff retry logic** for transient network errors.
 - `SubtitleDownloader`: Specialized for sidecar subtitle files.
 - `AudioDownloader`: Optimized for audio extraction (opus, mp3, m4a).
 - `VideoDownloader`: Standard video downloads.
@@ -45,6 +46,8 @@ Concrete implementations of `VideoTask`.
 ### `com.ytdlpjava.util`
 - `DictionaryLoader`: Resource-based loader for stop-words and fillers.
 - `FilenameGenerator`: Date-aware file naming logic.
+- `LemmatizerService`: Multi-language stemming service (supports Russian Porter stemmer and simplified English rules).
+- `RussianStemmer`: Implementation of the Porter stemming algorithm for Russian.
 
 ## Usage
 Run the application with a YouTube URL as the first argument, or provide it via interactive prompt.

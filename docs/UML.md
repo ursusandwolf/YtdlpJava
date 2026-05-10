@@ -35,24 +35,22 @@
         |                      |            +--------+----------+
         |                      |                     |
         |                      |      +--------------+-------------+
-        |                      |      | Parser | Cleaner | Analyzer|
-        |                      |      +----------------------------+
-        |                      |
-        +----------+-----------+
+        | Parser | Cleaner | Analyzer|
+        +----------------------------+
                    |
                    v
-        +-----------------------+
-        | com.ytdlpjava.util    |
-        | (FilenameGenerator)   |
-        +-----------------------+
-```
+          +-----------------------+
+          | com.ytdlpjava.util    |
+          | (FilenameGenerator)   |
+          | (LemmatizerService)   |
+          +-----------------------+
 
-## Strategy Pattern for Tasks
-The `VideoTask` interface allows `YtdlManager` to process videos in different ways (subtitles, audio, video) without knowing the implementation details.
+        ## Strategy Pattern for Tasks
+        The `VideoTask` interface allows `YtdlManager` to process videos in different ways. `ScreenshotTask` now utilizes an injected `ProcessExecutor` for frame extraction.
 
-## Decomposed Processing (SubtitleCleaner)
-`SubtitleCleaner` now acts as a coordinator (facade) that delegates tasks to specialized components:
-1. `Parser` extracts blocks from VTT.
-2. `CleanerService` removes noise (tags, fillers).
-3. `MarkdownFormatter` builds the document structure.
-4. `KeywordAnalyzer` highlights and summarizes key terms.
+        ## Decomposed Processing (SubtitleCleaner)
+        `SubtitleCleaner` delegates to:
+        1. `Parser` extracts blocks from VTT.
+        2. `CleanerService` removes noise.
+        3. `MarkdownFormatter` builds the document structure.
+        4. `KeywordAnalyzer` highlights terms using `LemmatizerService` for accurate stemming.
