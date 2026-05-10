@@ -18,6 +18,8 @@ public class VideoDownloader extends AbstractYoutubeService {
         List<String> command = List.of(
                 "yt-dlp",
                 "--no-warnings",
+                "--ignore-errors",
+                "--extractor-args", "youtube:player_client=web,mweb",
                 "--newline",
                 "--progress",
                 "-f", "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best",

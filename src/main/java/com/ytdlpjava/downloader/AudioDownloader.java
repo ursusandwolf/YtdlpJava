@@ -22,6 +22,8 @@ public class AudioDownloader extends AbstractYoutubeService {
         List<String> command = List.of(
                 "yt-dlp",
                 "--no-warnings",
+                "--ignore-errors",
+                "--extractor-args", "youtube:player_client=web,mweb",
                 "--newline",
                 "--progress",
                 "-x",
