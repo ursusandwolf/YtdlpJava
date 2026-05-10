@@ -14,16 +14,28 @@ public abstract class AbstractYoutubeService implements Downloader {
     protected final ProcessExecutor executor;
 
     protected String runResiliently(List<String> command, String errorMessage) throws IOException, InterruptedException {
+        // 1. Try original command (default clients: often ios, android, web, tv)
         try {
             return executor.run(command, errorMessage);
         } catch (RuntimeException e) {
-            log.warn("Initial attempt failed: {}. Retrying with web player client...", e.getMessage());
-            List<String> fallback = new ArrayList<>(command);
-            // Inject extractor args after 'yt-dlp'
-            fallback.add(1, "--extractor-args");
-            fallback.add(2, "youtube:player_client=web,mweb");
-            return executor.run(fallback, errorMessage + " (Fallback failed)");
+            log.warn("Default attempt failed: {}. Retrying with android/ios clients...", e.getMessage());
         }
+
+        // 2. Try specifically with android/ios (often more reliable for just-ended streams)
+        try {
+            List<String> androidFallback = new ArrayList<>(command);
+            androidFallback.add(1, "--extractor-args");
+            androidFallback.add(2, "youtube:player_client=android,ios");
+            return executor.run(androidFallback, errorMessage);
+        } catch (RuntimeException e) {
+            log.warn("Android/ios fallback failed. Retrying with web/mweb/tv clients...");
+        }
+
+        // 3. Try with web/mweb/tv as a last resort
+        List<String> finalFallback = new ArrayList<>(command);
+        finalFallback.add(1, "--extractor-args");
+        finalFallback.add(2, "youtube:player_client=web,mweb,tv");
+        return executor.run(finalFallback, errorMessage + " (All fallbacks failed)");
     }
 
     @Override
