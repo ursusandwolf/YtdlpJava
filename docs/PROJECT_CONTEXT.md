@@ -4,11 +4,17 @@
 The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
 
 ## Recent Changes (2026-05-10)
-- **Improved yt-dlp Resilience**:
-  - Implemented a **Smart Fallback** mechanism: metadata and downloads now use the default `yt-dlp` clients first, and automatically retry with `web`/`mweb` clients only upon failure.
-  - This approach fixes the "This live event has ended" issue while preserving the performance and high-quality stream availability of the `ios`/`tv` clients for regular videos.
-  - Added `--ignore-errors` and defensive try-catch blocks across all discovery and download modules.
-  - Fixed critical application termination on recoverable `yt-dlp` errors.
+- **Advanced yt-dlp Resilience (v1.3.8)**:
+  - Implemented a 5-stage "Deep Fallback" mechanism to handle "This live event has ended" and "Post-Live Manifestless mode" errors.
+  - Added support for Node.js JS runtime in `ProcessExecutor` to bypass modern YouTube extraction challenges.
+  - Resolved `fragment 1 not found` errors by forcing stable subtitle formats (`srv1`, `json3`) and skipping DASH/HLS manifests in fallback modes.
+  - Ensured "clean starts" for all downloads using `--no-continue` and `--no-part`, preventing corrupted temporary files from blocking retries.
+  - Restored VTT priority for standard videos to maintain full compatibility with the internal processing engine.
+- **Keyword Extraction Quality**:
+  - Expanded the Russian stop-words dictionary with common filler words (таки, примерно, давайте, говоря, хорошо, млн, год, etc.) to produce cleaner and more meaningful keyword summaries.
+- **Maintenance**:
+  - Updated `.gitignore` to cover all temporary `yt-dlp` file patterns.
+  - Cleaned up residual temporary files from the project root.
 
 ## Recent Changes (2026-05-08)
 - **Advanced Subtitle Quality Improvements**:

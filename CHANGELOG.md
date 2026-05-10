@@ -2,17 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.3] - 2026-05-10
+## [1.3.8] - 2026-05-10
+
+### Added
+- **JS Runtime Support**: Automatically detects and uses `node` as a JavaScript runtime for `yt-dlp`, improving extraction for modern YouTube player clients.
+- **Enhanced Subtitle Filtering**: Expanded Russian stop-words dictionary to filter out common filler words like "таки", "примерно", "кстати", etc., significantly improving the quality of the Keywords Summary.
 
 ### Fixed
-- **yt-dlp Resilience**:
-  - Implemented a **Smart Fallback** mechanism: the tool now uses default `yt-dlp` behavior first (allowing optimal player client selection) and only retries with `--extractor-args "youtube:player_client=web,mweb"` if the initial attempt fails.
-  - This specifically fixes the "This live event has ended" error for recently finished streams without sacrificing download performance for regular videos.
-  - Implemented `--ignore-errors` for all metadata, discovery, and download commands.
-  - Added defensive try-catch blocks to prevent application crashes on recoverable `yt-dlp` errors.
-  - The tool now gracefully falls back to treating a URL as a single video if playlist discovery fails.
-  - Improved error logging in `ProcessExecutor` to provide clearer context on command failures.
+- **Post-Live Subtitle Extraction**:
+  - Implemented a 5-stage deep fallback strategy for player clients (`android`, `mweb`, `embedded`, `player_skip=configs`).
+  - Prioritized non-DASH subtitle formats (`srv1`, `json3`) in fallback modes to resolve `fragment 1 not found` errors.
+  - Added `--no-continue` and `--no-part` to all downloaders to ensure clean retry attempts and prevent corrupted partial files from blocking execution.
+  - Added `--skip-unavailable-fragments` to handle the transition period between live stream end and VOD availability.
+- **Regression Fix**: Restored VTT as the primary subtitle format for standard videos to ensure compatibility with the existing `SubtitleParser`.
 
+## [1.3.3] - 2026-05-10
 ## [1.3.2] - 2026-05-08
 
 ### Added
