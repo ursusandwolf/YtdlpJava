@@ -48,13 +48,18 @@ public class FilenameGenerator implements FilenameProvider {
         name = ILLEGAL_CHARS.matcher(name).replaceAll("");
         String sanitized = WHITESPACE.matcher(name.trim()).replaceAll(" ");
         
-        // Simple deduplication for repeating patterns at the start
-        String[] parts = sanitized.split(" ");
-        if (parts.length > 2) {
-            String firstPart = parts[0] + " " + parts[1];
-            String secondPart = parts.length > 3 ? parts[2] + " " + parts[3] : "";
-            if (firstPart.equals(secondPart)) {
-                sanitized = sanitized.substring(firstPart.length() + 1);
+        // Advanced deduplication: remove any sequence of words repeated at the start
+        // Regex: (?i)^(.*)\1+ looks for a group repeated at the start.
+        // Simplified approach: iterate through potential prefix lengths and check for repetition
+        for (int len = 1; len <= sanitized.length() / 2; len++) {
+            String prefix = sanitized.substring(0, len).trim();
+            if (prefix.length() < 5) continue; // Ignore very short prefixes
+            
+            // Check if the title starts with the prefix, then a space, then the prefix again
+            if (sanitized.startsWith(prefix + " " + prefix)) {
+                sanitized = sanitized.substring(prefix.length() + 1);
+                // Recursive call to catch multiple repetitions
+                return sanitizeFilename(sanitized);
             }
         }
         
