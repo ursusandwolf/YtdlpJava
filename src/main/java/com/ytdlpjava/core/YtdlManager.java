@@ -24,6 +24,7 @@ public class YtdlManager {
             if (urls.size() > 1 || url.contains("playlist?list=")) {
                 String playlistTitle = downloader.getPlaylistTitle(url);
                 if (playlistTitle != null && !playlistTitle.isEmpty() && !"NA".equalsIgnoreCase(playlistTitle)) {
+                    log.info("Raw playlist title: {}", playlistTitle);
                     String sanitizedTitle = task.getFilenameProvider().buildFilename(playlistTitle, 60);
                     effectiveOutputDir = outputDir.resolve(sanitizedTitle);
                     if (!Files.exists(effectiveOutputDir)) {

@@ -47,6 +47,17 @@ public class FilenameGenerator implements FilenameProvider {
     private String sanitizeFilename(String name) {
         name = ILLEGAL_CHARS.matcher(name).replaceAll("");
         String sanitized = WHITESPACE.matcher(name.trim()).replaceAll(" ");
+        
+        // Simple deduplication for repeating patterns at the start
+        String[] parts = sanitized.split(" ");
+        if (parts.length > 2) {
+            String firstPart = parts[0] + " " + parts[1];
+            String secondPart = parts.length > 3 ? parts[2] + " " + parts[3] : "";
+            if (firstPart.equals(secondPart)) {
+                sanitized = sanitized.substring(firstPart.length() + 1);
+            }
+        }
+        
         return sanitized.isEmpty() ? "video" : sanitized;
     }
 

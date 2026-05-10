@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.9] - 2026-05-10
+## [1.3.10] - 2026-05-10
+
+### Fixed
+- **Playlist Directory Redundancy**: Implemented title deduplication in `FilenameGenerator` to prevent repeating phrases at the start of filenames, which caused redundant directory structure for playlists.
+
 
 ### Fixed
 - **Playlist/Subtitle File Resolution**: Improved file-finding logic in `SubtitleDownloader` to more robustly identify downloaded files, preventing misidentification that could lead to duplicate naming issues in playlist directories.
