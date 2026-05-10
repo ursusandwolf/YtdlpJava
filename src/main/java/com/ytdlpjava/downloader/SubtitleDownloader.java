@@ -40,7 +40,7 @@ public class SubtitleDownloader extends AbstractYoutubeService {
         // yt-dlp appends .lang.ext (e.g., .en.vtt). Find the resulting file.
         try (var files = Files.list(Path.of("."))) {
             return files
-                    .filter(p -> p.getFileName().toString().startsWith(outputBasename + "." + lang))
+                    .filter(p -> p.getFileName().toString().startsWith(outputBasename) && p.getFileName().toString().endsWith(".vtt"))
                     .findFirst()
                     .orElseThrow(() -> new IOException("Subtitle file not found for " + outputBasename));
         }

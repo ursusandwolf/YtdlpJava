@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.8] - 2026-05-10
+## [1.3.9] - 2026-05-10
+
+### Fixed
+- **Playlist/Subtitle File Resolution**: Improved file-finding logic in `SubtitleDownloader` to more robustly identify downloaded files, preventing misidentification that could lead to duplicate naming issues in playlist directories.
+
 
 ### Added
 - **JS Runtime Support**: Automatically detects and uses `node` as a JavaScript runtime for `yt-dlp`, improving extraction for modern YouTube player clients.
