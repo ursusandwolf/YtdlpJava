@@ -21,32 +21,40 @@ public abstract class AbstractYoutubeService implements Downloader {
             log.warn("Default attempt failed: {}. Retrying with android client...", e.getMessage());
         }
 
-        // 2. Try specifically with android (often more reliable than ios for ended streams)
+        // 2. Try specifically with android
         try {
             List<String> androidFallback = new ArrayList<>(command);
             androidFallback.add(1, "--extractor-args");
             androidFallback.add(2, "youtube:player_client=android");
             return executor.run(androidFallback, errorMessage);
         } catch (RuntimeException e) {
-            log.warn("Android fallback failed. Retrying with embedded client...");
+            log.warn("Android fallback failed. Retrying with mweb client...");
         }
 
-        // 3. Try with embedded client (bypasses many 'live' checks)
+        // 3. Try with mweb client (often handles live-to-VOD transition better)
+        try {
+            List<String> mwebFallback = new ArrayList<>(command);
+            mwebFallback.add(1, "--extractor-args");
+            mwebFallback.add(2, "youtube:player_client=mweb");
+            return executor.run(mwebFallback, errorMessage);
+        } catch (RuntimeException e) {
+            log.warn("Mweb fallback failed. Retrying with embedded client...");
+        }
+
+        // 4. Try with embedded client
         try {
             List<String> embeddedFallback = new ArrayList<>(command);
             embeddedFallback.add(1, "--extractor-args");
             embeddedFallback.add(2, "youtube:player_client=embedded");
             return executor.run(embeddedFallback, errorMessage);
         } catch (RuntimeException e) {
-            log.warn("Embedded fallback failed. Retrying with manifest-skip mode...");
+            log.warn("Embedded fallback failed. Retrying with config-skip mode...");
         }
 
-        // 4. Try skipping DASH/HLS manifests (last resort to get basic data/subtitles)
+        // 5. Try skipping configs (last resort)
         List<String> desperateFallback = new ArrayList<>(command);
         desperateFallback.add(1, "--extractor-args");
-        desperateFallback.add(2, "youtube:player_client=web,android;player_skip=configs");
-        desperateFallback.add("--youtube-skip-dash-manifest");
-        desperateFallback.add("--youtube-skip-hls-manifest");
+        desperateFallback.add(2, "youtube:player_skip=configs");
         return executor.run(desperateFallback, errorMessage + " (All fallbacks failed)");
     }
 

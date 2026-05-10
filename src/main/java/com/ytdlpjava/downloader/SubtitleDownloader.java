@@ -26,6 +26,7 @@ public class SubtitleDownloader extends AbstractYoutubeService {
                 "--progress",
                 "--write-auto-sub",
                 "--sub-lang", lang,
+                "--sub-format", "srv1/srv2/srv3/vtt/best",
                 "--skip-download",
                 "--output", outputBasename,
                 videoUrl
