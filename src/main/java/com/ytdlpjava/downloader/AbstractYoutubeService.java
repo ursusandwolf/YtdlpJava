@@ -1,8 +1,11 @@
 package com.ytdlpjava.downloader;
 
 import com.ytdlpjava.core.ProcessExecutor;
-import com.ytdlpjava.model.Downloader;import java.util.ArrayList;
+import com.ytdlpjava.model.Downloader;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
