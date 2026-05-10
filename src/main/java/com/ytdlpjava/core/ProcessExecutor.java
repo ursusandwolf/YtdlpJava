@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -16,9 +17,16 @@ public class ProcessExecutor {
     }
 
     public String run(List<String> command, String errorMessage, long timeout, TimeUnit unit) throws IOException, InterruptedException {
-        log.debug("Executing command: {}", String.join(" ", command));
+        List<String> finalCommand = new ArrayList<>(command);
+        // Add JS runtime if it's a yt-dlp command and not already present
+        if (!finalCommand.isEmpty() && "yt-dlp".equals(finalCommand.get(0)) && !finalCommand.contains("--js-runtimes")) {
+            finalCommand.add(1, "--js-runtimes");
+            finalCommand.add(2, "node");
+        }
+
+        log.debug("Executing command: {}", String.join(" ", finalCommand));
         
-        Process process = new ProcessBuilder(command)
+        Process process = new ProcessBuilder(finalCommand)
                 .redirectErrorStream(true)
                 .start();
 

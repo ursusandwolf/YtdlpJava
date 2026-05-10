@@ -51,10 +51,11 @@ public abstract class AbstractYoutubeService implements Downloader {
             log.warn("Embedded fallback failed. Retrying with config-skip mode...");
         }
 
-        // 5. Try skipping DASH/HLS and configs (last resort)
+        // 5. Try skipping DASH/HLS and configs + skip unavailable fragments (last resort)
         List<String> desperateFallback = new ArrayList<>(command);
         desperateFallback.add(1, "--extractor-args");
         desperateFallback.add(2, "youtube:skip=dash,hls;player_skip=configs");
+        desperateFallback.add("--skip-unavailable-fragments");
         return executor.run(desperateFallback, errorMessage + " (All fallbacks failed)");
     }
 
