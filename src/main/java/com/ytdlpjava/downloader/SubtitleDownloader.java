@@ -22,7 +22,6 @@ public class SubtitleDownloader extends AbstractYoutubeService {
                 "yt-dlp",
                 "--no-warnings",
                 "--ignore-errors",
-                "--extractor-args", "youtube:player_client=web,mweb",
                 "--newline",
                 "--progress",
                 "--write-auto-sub",
@@ -33,7 +32,7 @@ public class SubtitleDownloader extends AbstractYoutubeService {
         );
 
         log.info("Downloading subtitles for: {}", videoUrl);
-        executor.run(command, "Subtitle download failed");
+        runResiliently(command, "Subtitle download failed");
 
         // yt-dlp appends .lang.ext (e.g., .en.vtt). Find the resulting file.
         try (var files = Files.list(Path.of("."))) {

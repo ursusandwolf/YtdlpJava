@@ -19,7 +19,6 @@ public class VideoDownloader extends AbstractYoutubeService {
                 "yt-dlp",
                 "--no-warnings",
                 "--ignore-errors",
-                "--extractor-args", "youtube:player_client=web,mweb",
                 "--newline",
                 "--progress",
                 "-f", "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best",
@@ -29,7 +28,7 @@ public class VideoDownloader extends AbstractYoutubeService {
         );
 
         log.info("Downloading video (720p max) for: {}", videoUrl);
-        String filePath = executor.run(command, "Video download failed");
+        String filePath = runResiliently(command, "Video download failed");
         return Path.of(filePath);
     }
 }

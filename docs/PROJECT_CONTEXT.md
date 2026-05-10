@@ -5,10 +5,10 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 
 ## Recent Changes (2026-05-10)
 - **Improved yt-dlp Resilience**:
-  - Implemented `--ignore-errors` and defensive try-catch blocks for all metadata and discovery commands.
-  - Forced `web` and `mweb` player clients for all downloads to bypass "This live event has ended" errors that occur with the default `ios`/`tv` clients on recently finished streams.
-  - Added graceful fallback to single-video processing if playlist discovery fails.
-  - Fixed a critical issue where "This live event has ended" would cause the entire application to terminate.
+  - Implemented a **Smart Fallback** mechanism: metadata and downloads now use the default `yt-dlp` clients first, and automatically retry with `web`/`mweb` clients only upon failure.
+  - This approach fixes the "This live event has ended" issue while preserving the performance and high-quality stream availability of the `ios`/`tv` clients for regular videos.
+  - Added `--ignore-errors` and defensive try-catch blocks across all discovery and download modules.
+  - Fixed critical application termination on recoverable `yt-dlp` errors.
 
 ## Recent Changes (2026-05-08)
 - **Advanced Subtitle Quality Improvements**:

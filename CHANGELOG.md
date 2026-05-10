@@ -6,10 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **yt-dlp Resilience**:
-  - Implemented `--ignore-errors` for all metadata and discovery commands (`getTitle`, `getPlaylistUrls`, `getPlaylistTitle`).
-  - Added `--ignore-errors` and `--extractor-args "youtube:player_client=web,mweb"` to all downloaders (`Subtitle`, `Video`, `Audio`).
-  - This fixes the issue where recently ended live streams would fail with "This live event has ended" because `yt-dlp`'s default clients (`ios`/`tv`) are more restrictive than the `web` client.
-  - Added defensive try-catch blocks to prevent application crashes when encountering "ended live events" or other recoverable `yt-dlp` errors.
+  - Implemented a **Smart Fallback** mechanism: the tool now uses default `yt-dlp` behavior first (allowing optimal player client selection) and only retries with `--extractor-args "youtube:player_client=web,mweb"` if the initial attempt fails.
+  - This specifically fixes the "This live event has ended" error for recently finished streams without sacrificing download performance for regular videos.
+  - Implemented `--ignore-errors` for all metadata, discovery, and download commands.
+  - Added defensive try-catch blocks to prevent application crashes on recoverable `yt-dlp` errors.
   - The tool now gracefully falls back to treating a URL as a single video if playlist discovery fails.
   - Improved error logging in `ProcessExecutor` to provide clearer context on command failures.
 

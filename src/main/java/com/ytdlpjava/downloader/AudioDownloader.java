@@ -23,7 +23,6 @@ public class AudioDownloader extends AbstractYoutubeService {
                 "yt-dlp",
                 "--no-warnings",
                 "--ignore-errors",
-                "--extractor-args", "youtube:player_client=web,mweb",
                 "--newline",
                 "--progress",
                 "-x",
@@ -35,7 +34,7 @@ public class AudioDownloader extends AbstractYoutubeService {
         );
 
         log.info("Downloading audio ({}, q={}) for: {}", format, quality, videoUrl);
-        String filePath = executor.run(command, "Audio download failed");
+        String filePath = runResiliently(command, "Audio download failed");
         return Path.of(filePath);
     }
 }
