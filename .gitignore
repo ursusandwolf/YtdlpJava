@@ -16,5 +16,9 @@ Thumbs.db
 *.log
 *.tmp
 *.vtt
+*.vtt.part
+*.vtt.ytdl
+*.srt
+*.json
 txt/
 output/
