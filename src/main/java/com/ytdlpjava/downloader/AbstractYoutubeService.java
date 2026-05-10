@@ -20,9 +20,9 @@ public abstract class AbstractYoutubeService implements Downloader {
             baseCommand.add(2, "node");
         }
 
-        // 1. Try original command (default)
+        // 1. Try original command with retries for transient errors
         try {
-            return executor.run(baseCommand, errorMessage);
+            return runWithRetries(baseCommand, errorMessage, 3);
         } catch (RuntimeException e) {
             log.warn("Default attempt failed: {}. Retrying with android client...", e.getMessage());
         }
@@ -32,17 +32,17 @@ public abstract class AbstractYoutubeService implements Downloader {
             List<String> androidFallback = new ArrayList<>(baseCommand);
             androidFallback.add(1, "--extractor-args");
             androidFallback.add(2, "youtube:player_client=android");
-            return executor.run(androidFallback, errorMessage);
+            return runWithRetries(androidFallback, errorMessage, 2);
         } catch (RuntimeException e) {
             log.warn("Android fallback failed. Retrying with mweb client...");
         }
 
-        // 3. Try with mweb client (often handles live-to-VOD transition better)
+        // 3. Try with mweb client
         try {
             List<String> mwebFallback = new ArrayList<>(baseCommand);
             mwebFallback.add(1, "--extractor-args");
             mwebFallback.add(2, "youtube:player_client=mweb");
-            return executor.run(mwebFallback, errorMessage);
+            return runWithRetries(mwebFallback, errorMessage, 2);
         } catch (RuntimeException e) {
             log.warn("Mweb fallback failed. Retrying with embedded client...");
         }
@@ -52,18 +52,17 @@ public abstract class AbstractYoutubeService implements Downloader {
             List<String> embeddedFallback = new ArrayList<>(baseCommand);
             embeddedFallback.add(1, "--extractor-args");
             embeddedFallback.add(2, "youtube:player_client=embedded");
-            return executor.run(embeddedFallback, errorMessage);
+            return runWithRetries(embeddedFallback, errorMessage, 2);
         } catch (RuntimeException e) {
             log.warn("Embedded fallback failed. Retrying with config-skip mode...");
         }
 
-        // 5. Try skipping DASH/HLS and configs + skip unavailable fragments + try all formats (last resort)
+        // 5. Last resort desperation fallback
         List<String> desperateFallback = new ArrayList<>(baseCommand);
         desperateFallback.add(1, "--extractor-args");
         desperateFallback.add(2, "youtube:skip=dash,hls;player_skip=configs");
         desperateFallback.add("--skip-unavailable-fragments");
         
-        // If it's a subtitle command, force stable formats as a last resort
         if (baseCommand.contains("--write-auto-sub")) {
             int subFormatIdx = desperateFallback.indexOf("--sub-format");
             if (subFormatIdx != -1) {
@@ -71,7 +70,35 @@ public abstract class AbstractYoutubeService implements Downloader {
             }
         }
         
-        return executor.run(desperateFallback, errorMessage + " (All fallbacks failed)");
+        return runWithRetries(desperateFallback, errorMessage + " (All fallbacks failed)", 1);
+    }
+
+    private String runWithRetries(List<String> command, String errorMessage, int maxRetries) throws IOException, InterruptedException {
+        int attempt = 0;
+        while (true) {
+            try {
+                return executor.run(command, errorMessage);
+            } catch (RuntimeException e) {
+                attempt++;
+                if (attempt >= maxRetries || !isTransientError(e.getMessage())) {
+                    throw e;
+                }
+                long sleepMs = (long) Math.pow(2, attempt) * 1000;
+                log.warn("Transient error detected: {}. Retrying in {}ms (Attempt {}/{})", e.getMessage(), sleepMs, attempt, maxRetries);
+                Thread.sleep(sleepMs);
+            }
+        }
+    }
+
+    private boolean isTransientError(String message) {
+        if (message == null) return false;
+        String lower = message.toLowerCase();
+        return lower.contains("timed out") || 
+               lower.contains("connection reset") || 
+               lower.contains("503") || 
+               lower.contains("500") || 
+               lower.contains("sign in to confirm your age") ||
+               lower.contains("too many requests");
     }
 
     @Override

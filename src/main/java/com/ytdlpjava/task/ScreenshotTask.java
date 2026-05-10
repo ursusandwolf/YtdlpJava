@@ -16,6 +16,7 @@ import java.util.List;
 public class ScreenshotTask implements VideoTask {
     private final Downloader downloader;
     private final FilenameProvider filenameProvider;
+    private final ProcessExecutor executor;
     private final int intervalSeconds;
 
     @Override
@@ -34,7 +35,6 @@ public class ScreenshotTask implements VideoTask {
             long duration = downloader.getDuration(url);
             log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
 
-            ProcessExecutor executor = new ProcessExecutor(); // In a real app, this should be injected
             for (long ts = 0; ts < duration; ts += intervalSeconds) {
                 Path outputPath = outputDir.resolve(String.format("%s_%05d.jpg", basename, ts));
                 

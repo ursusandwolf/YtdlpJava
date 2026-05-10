@@ -33,9 +33,9 @@ public class MarkdownFormatter {
                 }
             }
 
-            if (shouldCapitalize) {
+            if (shouldCapitalize && paragraph.length() > 0) {
                 paragraph = paragraph.substring(0, 1).toUpperCase() + paragraph.substring(1);
-            } else {
+            } else if (paragraph.length() > 0) {
                 paragraph = paragraph.substring(0, 1).toLowerCase() + paragraph.substring(1);
             }
 

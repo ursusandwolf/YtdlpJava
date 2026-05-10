@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.13] - 2026-05-10
+
+### Added
+- **Transient Error Retry Logic**: Implemented an exponential backoff retry loop in `AbstractYoutubeService` for `yt-dlp` commands, handling common network errors (503, 500, timeouts, rate limits).
+
+### Fixed
+- **Markdown Formatter Resilience**: Fixed a potential `StringIndexOutOfBoundsException` when processing empty or single-character paragraphs.
+
+### Changed
+- **Architectural Improvements**:
+  - Refactored `ScreenshotTask` to use an injected `ProcessExecutor` instead of manual instantiation, improving testability.
+  - Updated `Main` to handle the new dependency injection flow.
+
 ## [1.3.12] - 2026-05-10
 
 ### Changed

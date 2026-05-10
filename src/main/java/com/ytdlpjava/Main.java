@@ -91,7 +91,7 @@ public class Main {
         FilenameProvider filenameProvider = new FilenameGenerator();
         
         Downloader downloader = createDownloader(main, executor);
-        VideoTask task = createTask(main, downloader, filenameProvider);
+        VideoTask task = createTask(main, downloader, filenameProvider, executor);
 
         YtdlManager manager = new YtdlManager(task, downloader);
         try {
@@ -117,11 +117,11 @@ public class Main {
         };
     }
 
-    private static VideoTask createTask(Main main, Downloader downloader, FilenameProvider filenameProvider) {
+    private static VideoTask createTask(Main main, Downloader downloader, FilenameProvider filenameProvider, ProcessExecutor executor) {
         return switch (main.type.toLowerCase()) {
             case "audio" -> new AudioTask(downloader, filenameProvider);
             case "video" -> new VideoDownloadTask(downloader, filenameProvider);
-            case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, main.interval);
+            case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, executor, main.interval);
             case "metadata" -> new MetadataTask(downloader, filenameProvider);
             case "sub" -> {
                 ContentProcessor processor = new SubtitleCleaner(180, main.lang);

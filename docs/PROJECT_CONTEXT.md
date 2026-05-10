@@ -2,8 +2,11 @@
 
 ## Current State
 The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
-
 ## Recent Changes (2026-05-10)
+- **Enhanced Reliability & Architecture**:
+  - Implemented **exponential backoff retry logic** for `yt-dlp` commands to handle transient network errors.
+  - Improved **Dependency Injection** by passing `ProcessExecutor` into `ScreenshotTask`.
+  - Fixed a potential crash in `MarkdownFormatter` for short strings.
 - **Code Quality & Reliability Improvements**:
   - Fixed English keyword stemmer to prevent aggressive truncation.
   - Refactored `ProcessExecutor` to separate `yt-dlp` specific arguments and improved path extraction by checking for file existence.
@@ -21,8 +24,10 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Updated `.gitignore` to cover all temporary `yt-dlp` file patterns.
   - Cleaned up residual temporary files from the project root.
 
-## Recent Changes (2026-05-08)
-- **Advanced Subtitle Quality Improvements**:
+## Pending Items
+- [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.
+- [ ] Implement unit tests for `LemmatizerService` and `ProcessExecutor`.
+
   - Implemented **keyword extraction and highlighting**: automatically identifies the top 30 most frequent keywords (ignoring an expanded list of prepositions, pronouns, and common verbs) and highlights them in **bold** throughout the text.
   - Improved **filler word cleaning**: expanded detection to include "да" and implemented robust punctuation cleanup to prevent errors like ",.".
   - Enhanced **capitalization logic**: added a step to ensure correct sentence case after any punctuation cleanup or forced sentence splits.
