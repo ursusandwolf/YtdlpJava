@@ -14,28 +14,40 @@ public abstract class AbstractYoutubeService implements Downloader {
     protected final ProcessExecutor executor;
 
     protected String runResiliently(List<String> command, String errorMessage) throws IOException, InterruptedException {
-        // 1. Try original command (default clients: often ios, android, web, tv)
+        // 1. Try original command (default)
         try {
             return executor.run(command, errorMessage);
         } catch (RuntimeException e) {
-            log.warn("Default attempt failed: {}. Retrying with android/ios clients...", e.getMessage());
+            log.warn("Default attempt failed: {}. Retrying with android client...", e.getMessage());
         }
 
-        // 2. Try specifically with android/ios (often more reliable for just-ended streams)
+        // 2. Try specifically with android (often more reliable than ios for ended streams)
         try {
             List<String> androidFallback = new ArrayList<>(command);
             androidFallback.add(1, "--extractor-args");
-            androidFallback.add(2, "youtube:player_client=android,ios");
+            androidFallback.add(2, "youtube:player_client=android");
             return executor.run(androidFallback, errorMessage);
         } catch (RuntimeException e) {
-            log.warn("Android/ios fallback failed. Retrying with web/mweb/tv clients...");
+            log.warn("Android fallback failed. Retrying with embedded client...");
         }
 
-        // 3. Try with web/mweb/tv as a last resort
-        List<String> finalFallback = new ArrayList<>(command);
-        finalFallback.add(1, "--extractor-args");
-        finalFallback.add(2, "youtube:player_client=web,mweb,tv");
-        return executor.run(finalFallback, errorMessage + " (All fallbacks failed)");
+        // 3. Try with embedded client (bypasses many 'live' checks)
+        try {
+            List<String> embeddedFallback = new ArrayList<>(command);
+            embeddedFallback.add(1, "--extractor-args");
+            embeddedFallback.add(2, "youtube:player_client=embedded");
+            return executor.run(embeddedFallback, errorMessage);
+        } catch (RuntimeException e) {
+            log.warn("Embedded fallback failed. Retrying with manifest-skip mode...");
+        }
+
+        // 4. Try skipping DASH/HLS manifests (last resort to get basic data/subtitles)
+        List<String> desperateFallback = new ArrayList<>(command);
+        desperateFallback.add(1, "--extractor-args");
+        desperateFallback.add(2, "youtube:player_client=web,android;player_skip=configs");
+        desperateFallback.add("--youtube-skip-dash-manifest");
+        desperateFallback.add("--youtube-skip-hls-manifest");
+        return executor.run(desperateFallback, errorMessage + " (All fallbacks failed)");
     }
 
     @Override
