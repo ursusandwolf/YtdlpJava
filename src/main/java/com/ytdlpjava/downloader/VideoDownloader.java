@@ -21,6 +21,7 @@ public class VideoDownloader extends AbstractYoutubeService {
                 "--ignore-errors",
                 "--newline",
                 "--progress",
+                "--no-continue",
                 "-f", "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best",
                 "--output", outputBasename + ".%(ext)s",
                 "--print", "after_move:filepath",

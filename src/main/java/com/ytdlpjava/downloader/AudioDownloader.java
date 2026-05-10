@@ -25,6 +25,7 @@ public class AudioDownloader extends AbstractYoutubeService {
                 "--ignore-errors",
                 "--newline",
                 "--progress",
+                "--no-continue",
                 "-x",
                 "--audio-format", format,
                 "--audio-quality", quality,
