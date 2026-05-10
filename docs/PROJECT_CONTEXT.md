@@ -3,6 +3,12 @@
 ## Current State
 The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
 
+## Recent Changes (2026-05-10)
+- **Improved yt-dlp Resilience**:
+  - Implemented `--ignore-errors` and defensive try-catch blocks for all metadata and discovery commands.
+  - Added graceful fallback to single-video processing if playlist discovery fails (e.g., due to "ended live events").
+  - Fixed a critical issue where "This live event has ended" would cause the entire application to terminate.
+
 ## Recent Changes (2026-05-08)
 - **Advanced Subtitle Quality Improvements**:
   - Implemented **keyword extraction and highlighting**: automatically identifies the top 30 most frequent keywords (ignoring an expanded list of prepositions, pronouns, and common verbs) and highlights them in **bold** throughout the text.

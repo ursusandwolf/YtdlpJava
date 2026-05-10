@@ -13,50 +13,64 @@ public abstract class AbstractYoutubeService implements Downloader {
 
     @Override
     public String getTitle(String videoUrl) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--no-warnings", "--print", "title", videoUrl);
-        return executor.run(command, "Failed to fetch video title");
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--print", "title", videoUrl);
+        try {
+            return executor.run(command, "Failed to fetch video title").trim();
+        } catch (Exception e) {
+            log.warn("Could not fetch video title for {}. Error: {}", videoUrl, e.getMessage());
+            return "Unknown_Video_" + System.currentTimeMillis();
+        }
     }
 
     public String getStreamUrl(String videoUrl) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--no-warnings", "-f", "bestvideo[ext=mp4]/best[ext=mp4]/best", "-g", videoUrl);
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "-f", "bestvideo[ext=mp4]/best[ext=mp4]/best", "-g", videoUrl);
         return executor.run(command, "Failed to fetch stream URL");
     }
 
     public long getDuration(String videoUrl) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--no-warnings", "--print", "%(duration)j", videoUrl);
-        String output = executor.run(command, "Failed to fetch video duration");
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--print", "%(duration)j", videoUrl);
         try {
+            String output = executor.run(command, "Failed to fetch video duration");
             return Long.parseLong(output);
-        } catch (NumberFormatException e) {
-            log.warn("Could not parse duration '{}', trying fallback", output);
-            List<String> fallbackCmd = List.of("yt-dlp", "--no-warnings", "--print", "duration", videoUrl);
-            String fallbackOutput = executor.run(fallbackCmd, "Failed to fetch duration fallback");
+        } catch (Exception e) {
+            log.warn("Could not parse duration for {}, trying fallback. Error: {}", videoUrl, e.getMessage());
+            List<String> fallbackCmd = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--print", "duration", videoUrl);
             try {
+                String fallbackOutput = executor.run(fallbackCmd, "Failed to fetch duration fallback");
                 return (long) Double.parseDouble(fallbackOutput);
-            } catch (NumberFormatException e2) {
-                log.error("Total failure parsing duration: {}", fallbackOutput);
+            } catch (Exception e2) {
+                log.error("Total failure parsing duration for {}: {}", videoUrl, e2.getMessage());
                 return 0;
             }
         }
     }
 
     public List<String> getPlaylistUrls(String url) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--no-warnings", "--flat-playlist", "--print", "webpage_url", url);
-        String output = executor.run(command, "Failed to fetch playlist URLs");
-        
-        List<String> urls = output.lines()
-                .map(String::trim)
-                .filter(line -> !line.isEmpty() && !line.equals("NA"))
-                .toList();
-        
-        if (urls.isEmpty()) return List.of(url);
-        return urls;
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--flat-playlist", "--print", "webpage_url", url);
+        try {
+            String output = executor.run(command, "Failed to fetch playlist URLs");
+            List<String> urls = output.lines()
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty() && !line.equals("NA"))
+                    .toList();
+
+            if (urls.isEmpty()) return List.of(url);
+            return urls;
+        } catch (Exception e) {
+            log.warn("Could not fetch playlist URLs for {}, treating as single video. Error: {}", url, e.getMessage());
+            return List.of(url);
+        }
     }
 
     @Override
     public String getPlaylistTitle(String url) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--no-warnings", "--flat-playlist", "--print", "playlist_title", url);
-        String output = executor.run(command, "Failed to fetch playlist title");
-        return output.trim();
+        List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--flat-playlist", "--print", "playlist_title", url);
+        try {
+            String output = executor.run(command, "Failed to fetch playlist title");
+            return output.trim();
+        } catch (Exception e) {
+            log.warn("Could not fetch playlist title for {}. Error: {}", url, e.getMessage());
+            return "Unknown_Playlist";
+        }
     }
 }

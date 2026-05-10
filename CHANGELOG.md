@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.3] - 2026-05-10
+
+### Fixed
+- **yt-dlp Resilience**:
+  - Implemented `--ignore-errors` for all metadata and discovery commands (`getTitle`, `getPlaylistUrls`, `getPlaylistTitle`).
+  - Added defensive try-catch blocks to prevent application crashes when encountering "ended live events" or other recoverable `yt-dlp` errors.
+  - The tool now gracefully falls back to treating a URL as a single video if playlist discovery fails.
+  - Improved error logging in `ProcessExecutor` to provide clearer context on command failures.
+
 ## [1.3.2] - 2026-05-08
 
 ### Added
