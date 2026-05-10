@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.10] - 2026-05-10
+## [1.3.11] - 2026-05-10
 
 ### Fixed
-- **Playlist Directory Redundancy**: Implemented title deduplication in `FilenameGenerator` to prevent repeating phrases at the start of filenames, which caused redundant directory structure for playlists.
+- **Playlist Title Line Extraction**: Modified `AbstractYoutubeService` to take only the first line of the playlist title returned by `yt-dlp`, preventing duplicate naming when processing multiple items in a playlist.
 
 
 ### Fixed
