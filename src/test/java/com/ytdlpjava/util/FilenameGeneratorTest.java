@@ -34,4 +34,18 @@ class FilenameGeneratorTest {
         assertTrue(result.length() <= 20);
         assertEquals("This is a very long", result);
     }
+
+    @Test
+    void testDeduplicateRepeatingTitles() {
+        String title = "929 Книга Пророка Йоэля 929 Книга Пророка Йоэля 929 Книга";
+        String result = generator.buildFilename(title, 100);
+        assertEquals("929 Книга Пророка Йоэля", result);
+    }
+
+    @Test
+    void testDeduplicateNestedRepeatingTitles() {
+        String title = "重复 重复 重复 Content";
+        String result = generator.buildFilename(title, 100);
+        assertEquals("重复 Content", result);
+    }
 }

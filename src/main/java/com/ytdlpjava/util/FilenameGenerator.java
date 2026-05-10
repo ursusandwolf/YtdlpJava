@@ -47,22 +47,38 @@ public class FilenameGenerator implements FilenameProvider {
     private String sanitizeFilename(String name) {
         name = ILLEGAL_CHARS.matcher(name).replaceAll("");
         String sanitized = WHITESPACE.matcher(name.trim()).replaceAll(" ");
-        
-        // Advanced deduplication: remove any sequence of words repeated at the start
-        // Regex: (?i)^(.*)\1+ looks for a group repeated at the start.
-        // Simplified approach: iterate through potential prefix lengths and check for repetition
-        for (int len = 1; len <= sanitized.length() / 2; len++) {
-            String prefix = sanitized.substring(0, len).trim();
-            if (prefix.length() < 5) continue; // Ignore very short prefixes
-            
-            // Check if the title starts with the prefix, then a space, then the prefix again
-            if (sanitized.startsWith(prefix + " " + prefix)) {
-                sanitized = sanitized.substring(prefix.length() + 1);
-                // Recursive call to catch multiple repetitions
-                return sanitizeFilename(sanitized);
+
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            String[] words = sanitized.split("\\s+");
+            // Try different prefix lengths (number of words)
+            for (int len = 1; len < words.length; len++) {
+                // Build a prefix of 'len' words
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < len; i++) {
+                    if (i > 0) sb.append(" ");
+                    sb.append(words[i]);
+                }
+                String prefix = sb.toString();
+
+                // Check if sanitized starts with prefix, then a space, then *at least* another prefix
+                if (sanitized.startsWith(prefix + " " + prefix)) {
+                    sanitized = sanitized.substring(prefix.length() + 1);
+                    changed = true;
+                    break;
+                } else if (sanitized.startsWith(prefix + " ")) {
+                    // Try to handle partial match if the remainder is a prefix of the original prefix
+                    String remainder = sanitized.substring(prefix.length() + 1);
+                    if (prefix.startsWith(remainder)) {
+                        sanitized = prefix;
+                        changed = true;
+                        break;
+                    }
+                }
             }
         }
-        
+
         return sanitized.isEmpty() ? "video" : sanitized;
     }
 
