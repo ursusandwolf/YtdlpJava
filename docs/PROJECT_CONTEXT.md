@@ -91,8 +91,8 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 
 ## Pending Items
 - [x] Comprehensive Code Review.
-- [ ] Implement Constructor Injection in `SubtitleCleaner`.
-- [ ] Pre-compile regex patterns in `SubtitleCleanerService`.
-- [ ] Split `KeywordAnalyzer` into `KeywordExtractor` and `MarkdownHighlighter`.
+- [x] Implement Constructor Injection in `SubtitleCleaner`.
+- [x] Pre-compile regex patterns in `SubtitleCleanerService`.
+- [x] Split `KeywordAnalyzer` into `KeywordExtractor` and `MarkdownHighlighter`.
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.
 - [ ] Implement unit tests for `LemmatizerService` and `ProcessExecutor`.

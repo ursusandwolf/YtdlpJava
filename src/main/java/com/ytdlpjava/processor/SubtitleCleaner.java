@@ -12,38 +12,32 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ytdlpjava.model.ContentProcessor;
+import com.ytdlpjava.util.LemmatizerService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
+@RequiredArgsConstructor
 public class SubtitleCleaner implements ContentProcessor {
     private final int minTimestampGapSeconds;
-    private final String lang;
-    private final SubtitleParser parser = new SubtitleParser();
+    private final LemmatizerService.Language language;
+    private final SubtitleParser parser;
     private final SubtitleCleanerService cleanerService;
-    private final KeywordAnalyzer analyzer;
-    private final MarkdownFormatter formatter = new MarkdownFormatter();
-    private final LemmatizerService lemmatizer;
-
-    public SubtitleCleaner(int minTimestampGapSeconds, String lang) {
-        this.minTimestampGapSeconds = minTimestampGapSeconds;
-        this.lang = lang != null ? lang.toLowerCase() : "en";
-        this.lemmatizer = new LemmatizerService();
-        
-        this.cleanerService = new SubtitleCleanerService(
-                DictionaryLoader.load("/dictionaries/fillers.txt"));
-        
-        // Load combined stop words (generic + language specific)
-        List<String> stopWords = new ArrayList<>();
-        stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_ru.txt"));
-        if ("en".equals(this.lang)) {
-            stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
-        }
-        
-        LemmatizerService.Language language = "ru".equals(this.lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
-        this.analyzer = new KeywordAnalyzer(stopWords, lemmatizer, language);
-    }
+    private final KeywordExtractor extractor;
+    private final KeywordHighlighter highlighter;
+    private final MarkdownFormatter formatter;
 
     @Override
     public String process(Path vttPath) throws IOException {
-        log.info("Cleaning subtitles ({}): {}", lang, vttPath.getFileName());
+        log.info("Cleaning subtitles ({}): {}", language, vttPath.getFileName());
         String rawText = Files.readString(vttPath, StandardCharsets.UTF_8);
         
         List<SubtitleParser.SubtitleBlock> blocks = parser.parse(rawText);
@@ -92,8 +86,8 @@ public class SubtitleCleaner implements ContentProcessor {
         }
 
         String mainText = formatter.format(items);
-        LemmatizerService.Language language = "ru".equals(this.lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
-        return analyzer.analyzeAndHighlight(mainText, language);
+        KeywordExtractor.KeywordResult analysis = extractor.extract(mainText, language);
+        return highlighter.highlight(mainText, analysis);
     }
 
     private String formatTimestamp(Duration d) {

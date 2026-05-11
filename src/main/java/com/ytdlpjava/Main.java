@@ -20,10 +20,18 @@ import com.ytdlpjava.task.SubtitleTask;
 import com.ytdlpjava.task.VideoDownloadTask;
 import com.ytdlpjava.ui.InteractivePromptService;
 import com.ytdlpjava.util.FilenameGenerator;
+import com.ytdlpjava.util.LemmatizerService;
+import com.ytdlpjava.util.DictionaryLoader;
+import com.ytdlpjava.processor.SubtitleParser;
+import com.ytdlpjava.processor.SubtitleCleanerService;
+import com.ytdlpjava.processor.KeywordExtractor;
+import com.ytdlpjava.processor.KeywordHighlighter;
+import com.ytdlpjava.processor.MarkdownFormatter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -124,7 +132,23 @@ public class Main {
             case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, executor, main.interval);
             case "metadata" -> new MetadataTask(downloader, filenameProvider);
             case "sub" -> {
-                ContentProcessor processor = new SubtitleCleaner(180, main.lang);
+                LemmatizerService.Language language = "ru".equals(main.lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
+                
+                List<String> stopWords = new java.util.ArrayList<>();
+                stopWords.addAll(com.ytdlpjava.util.DictionaryLoader.load("/dictionaries/stop_words_ru.txt"));
+                if ("en".equals(main.lang)) {
+                    stopWords.addAll(com.ytdlpjava.util.DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
+                }
+                
+                ContentProcessor processor = new SubtitleCleaner(
+                        180,
+                        language,
+                        new com.ytdlpjava.processor.SubtitleParser(),
+                        new com.ytdlpjava.processor.SubtitleCleanerService(com.ytdlpjava.util.DictionaryLoader.load("/dictionaries/fillers.txt")),
+                        new com.ytdlpjava.processor.KeywordExtractor(stopWords, new com.ytdlpjava.util.LemmatizerService(), language),
+                        new com.ytdlpjava.processor.KeywordHighlighter(),
+                        new com.ytdlpjava.processor.MarkdownFormatter()
+                );
                 yield new SubtitleTask(downloader, processor, filenameProvider);
             }
             default -> throw new IllegalArgumentException("Unknown type: " + main.type);

@@ -51,13 +51,13 @@ public class ProcessExecutor {
         boolean finished = process.waitFor(timeout, unit);
         if (!finished) {
             process.destroyForcibly();
-            throw new RuntimeException(errorMessage + " (Timeout after " + timeout + " " + unit + ")");
+            throw new ProcessTimeoutException(errorMessage, timeout, unit);
         }
 
         int exitCode = process.exitValue();
         if (exitCode != 0) {
             log.error("Command failed with exit code {}. Output: {}", exitCode, output);
-            throw new RuntimeException("%s (Exit code: %d)".formatted(errorMessage, exitCode));
+            throw new ProcessExecutionException(errorMessage, exitCode, output.toString());
         }
 
         return resultPath != null ? resultPath : output.toString().trim();

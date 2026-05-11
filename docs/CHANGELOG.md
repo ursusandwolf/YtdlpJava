@@ -3,8 +3,14 @@
 ## [Unreleased]
 ### Added
 - Comprehensive code review findings.
+- Custom exceptions for `ProcessExecutor` (`ProcessTimeoutException`, `ProcessExecutionException`).
 - Global stop-words and filler dictionaries.
 - 5-stage resilience fallback strategy for yt-dlp.
+
+### Changed
+- Refactored `SubtitleCleaner` to use Constructor Injection for better testability.
+- Optimized `SubtitleCleanerService` by pre-compiling regex patterns.
+- Split `KeywordAnalyzer` into `KeywordExtractor` and `KeywordHighlighter`.
 
 ### Fixed
 - English keyword extraction stemming rules.
