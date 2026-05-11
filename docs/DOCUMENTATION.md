@@ -27,11 +27,22 @@ Advanced content processing logic (primarily for subtitles).
 
 ### `com.ytdlpjava.downloader`
 Implementations of the `Downloader` interface.
-- `AbstractYoutubeService`: Base class with a 5-stage resilience fallback strategy and **exponential backoff retry logic** for transient network errors.
+- `AbstractYoutubeService`: Base class with a 5-stage resilience fallback strategy:
+  1. Default with retries.
+  2. Android client.
+  3. Mweb client.
+  4. Embedded client.
+  5. Desperate mode (skip dash/hls).
 - `SubtitleDownloader`: Specialized for sidecar subtitle files.
 - `AudioDownloader`: Optimized for audio extraction (opus, mp3, m4a).
 - `VideoDownloader`: Standard video downloads.
 - `MetadataDownloader`: JSON metadata extraction.
+
+## Technical Debt & Road Map
+Following the code review on 2026-05-11:
+- **Dependency Injection**: Plan to move `SubtitleCleaner` to full DI.
+- **Optimization**: Pre-compile regex in `SubtitleCleanerService`.
+- **Modularity**: Split analysis and highlighting in `KeywordAnalyzer`.
 
 ### `com.ytdlpjava.task`
 Concrete implementations of `VideoTask`.
