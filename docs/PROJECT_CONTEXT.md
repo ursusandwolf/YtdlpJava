@@ -83,9 +83,16 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Decoupled interactive CLI logic from `Main.java` into `InteractivePromptService`.
   - Replaced wildcard imports with explicit ones across the project.
   - Consistently applied Lombok `@RequiredArgsConstructor` and `@Getter`/`@Setter`.
-- **Comprehensive Code Review**: (2026-05-08)
-  - Identified architectural issues and implemented fixes in the same session.
+- **Comprehensive Code Review**: (2026-05-11)
+  - Identified DIP violations in `SubtitleCleaner` (hardcoded dependencies).
+  - Identified performance bottlenecks in `SubtitleCleanerService` (regex re-compilation).
+  - Identified SRP violations in `KeywordAnalyzer` (analysis + highlighting mixed).
+  - Recommended migrating to specific exceptions in `ProcessExecutor`.
 
 ## Pending Items
+- [x] Comprehensive Code Review.
+- [ ] Implement Constructor Injection in `SubtitleCleaner`.
+- [ ] Pre-compile regex patterns in `SubtitleCleanerService`.
+- [ ] Split `KeywordAnalyzer` into `KeywordExtractor` and `MarkdownHighlighter`.
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.
-- [ ] Implement retry logic for failed `yt-dlp` commands.
+- [ ] Implement unit tests for `LemmatizerService` and `ProcessExecutor`.
