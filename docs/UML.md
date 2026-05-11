@@ -54,3 +54,5 @@
         2. `CleanerService` removes noise.
         3. `MarkdownFormatter` builds the document structure.
         4. `KeywordAnalyzer` highlights terms using `LemmatizerService` for accurate stemming.
+
+        > **Note (Code Review 2026-05-11):** Current implementation of `SubtitleCleaner` uses hardcoded dependencies. Migration to full Dependency Injection is planned to improve testability. `KeywordAnalyzer` is also targeted for splitting into extraction and formatting layers.
