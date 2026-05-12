@@ -1,18 +1,6 @@
 package com.ytdlpjava.processor;
 
 import com.ytdlpjava.model.ContentProcessor;
-import com.ytdlpjava.util.DictionaryLoader;
-import com.ytdlpjava.util.LemmatizerService;
-import lombok.extern.slf4j.Slf4j;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.ytdlpjava.model.ContentProcessor;
 import com.ytdlpjava.util.LemmatizerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

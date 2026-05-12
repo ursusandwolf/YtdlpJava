@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class KeywordExtractor {
+    private static final Pattern WORD_PATTERN = Pattern.compile("(?iu)[а-яёa-z]{3,}");
+    
     private final Set<String> stopWords;
     private final LemmatizerService lemmatizer;
 
@@ -25,7 +27,7 @@ public class KeywordExtractor {
         Map<String, List<String>> stemmedToOriginals = new HashMap<>();
         Map<String, Integer> stemCounts = new HashMap<>();
         
-        Matcher m = Pattern.compile("(?iu)[а-яёa-z]{3,}").matcher(text);
+        Matcher m = WORD_PATTERN.matcher(text);
         
         while (m.find()) {
             String original = m.group().toLowerCase();

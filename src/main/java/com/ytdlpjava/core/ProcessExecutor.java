@@ -4,6 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -36,13 +39,15 @@ public class ProcessExecutor {
                     
                     // Path extraction: look for absolute paths or existing files
                     String trimmedLine = line.trim();
-                    try {
-                        java.nio.file.Path possiblePath = java.nio.file.Path.of(trimmedLine);
-                        if (!trimmedLine.startsWith("[") && java.nio.file.Files.exists(possiblePath) && java.nio.file.Files.isRegularFile(possiblePath)) {
-                            resultPath = trimmedLine;
+                    if (isPotentialPath(trimmedLine)) {
+                        try {
+                            Path possiblePath = Path.of(trimmedLine);
+                            if (Files.exists(possiblePath) && Files.isRegularFile(possiblePath)) {
+                                resultPath = trimmedLine;
+                            }
+                        } catch (InvalidPathException | SecurityException ignored) {
+                            // Ignore invalid paths
                         }
-                    } catch (java.nio.file.InvalidPathException | SecurityException ignored) {
-                        // Ignore invalid paths
                     }
                 }
             }
@@ -61,5 +66,9 @@ public class ProcessExecutor {
         }
 
         return resultPath != null ? resultPath : output.toString().trim();
+    }
+
+    private boolean isPotentialPath(String line) {
+        return !line.startsWith("[") && (line.contains("/") || line.contains("\\") || line.contains(":"));
     }
 }

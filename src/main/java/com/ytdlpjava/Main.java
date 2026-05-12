@@ -84,16 +84,7 @@ public class Main {
             new InteractivePromptService().runInteractive(main);
         }
 
-        if ("output".equals(main.outputDir)) {
-            main.outputDir = switch (main.type.toLowerCase()) {
-                case "sub" -> "txt";
-                case "audio" -> "output/audio";
-                case "video" -> "output/video";
-                case "screenshot" -> "output/img";
-                case "metadata" -> "output/metadata";
-                default -> main.outputDir;
-            };
-        }
+        main.configureOutputDir();
 
         ProcessExecutor executor = new ProcessExecutor();
         FilenameProvider filenameProvider = new FilenameGenerator();
@@ -116,6 +107,19 @@ public class Main {
         }
     }
 
+    private void configureOutputDir() {
+        if ("output".equals(this.outputDir)) {
+            this.outputDir = switch (this.type.toLowerCase()) {
+                case "sub" -> "txt";
+                case "audio" -> "output/audio";
+                case "video" -> "output/video";
+                case "screenshot" -> "output/img";
+                case "metadata" -> "output/metadata";
+                default -> this.outputDir;
+            };
+        }
+    }
+
     private static Downloader createDownloader(Main main, ProcessExecutor executor) {
         return switch (main.type.toLowerCase()) {
             case "audio" -> new AudioDownloader(executor, main.audioFormat, main.audioQuality);
@@ -131,27 +135,28 @@ public class Main {
             case "video" -> new VideoDownloadTask(downloader, filenameProvider);
             case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, executor, main.interval);
             case "metadata" -> new MetadataTask(downloader, filenameProvider);
-            case "sub" -> {
-                LemmatizerService.Language language = "ru".equals(main.lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
-                
-                List<String> stopWords = new java.util.ArrayList<>();
-                stopWords.addAll(com.ytdlpjava.util.DictionaryLoader.load("/dictionaries/stop_words_ru.txt"));
-                if ("en".equals(main.lang)) {
-                    stopWords.addAll(com.ytdlpjava.util.DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
-                }
-                
-                ContentProcessor processor = new SubtitleCleaner(
-                        180,
-                        language,
-                        new com.ytdlpjava.processor.SubtitleParser(),
-                        new com.ytdlpjava.processor.SubtitleCleanerService(com.ytdlpjava.util.DictionaryLoader.load("/dictionaries/fillers.txt")),
-                        new com.ytdlpjava.processor.KeywordExtractor(stopWords, new com.ytdlpjava.util.LemmatizerService(), language),
-                        new com.ytdlpjava.processor.KeywordHighlighter(),
-                        new com.ytdlpjava.processor.MarkdownFormatter()
-                );
-                yield new SubtitleTask(downloader, processor, filenameProvider);
-            }
+            case "sub" -> new SubtitleTask(downloader, createSubtitleProcessor(main.lang), filenameProvider);
             default -> throw new IllegalArgumentException("Unknown type: " + main.type);
         };
+    }
+
+    private static ContentProcessor createSubtitleProcessor(String lang) {
+        LemmatizerService.Language language = "ru".equals(lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
+        
+        List<String> stopWords = new ArrayList<>();
+        stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_ru.txt"));
+        if ("en".equals(lang)) {
+            stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
+        }
+        
+        return new SubtitleCleaner(
+                180,
+                language,
+                new SubtitleParser(),
+                new SubtitleCleanerService(DictionaryLoader.load("/dictionaries/fillers.txt")),
+                new KeywordExtractor(stopWords, new LemmatizerService(), language),
+                new KeywordHighlighter(),
+                new MarkdownFormatter()
+        );
     }
 }

@@ -12,21 +12,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class KeywordAnalyzerTest {
 
-    private KeywordAnalyzer analyzer;
+    private KeywordExtractor extractor;
+    private KeywordHighlighter highlighter;
     private LemmatizerService lemmatizer;
 
     @BeforeEach
     void setUp() {
         lemmatizer = new LemmatizerService();
-        List<String> stopWords = Arrays.asList("это", "быть", "я", "говорить");
-        analyzer = new KeywordAnalyzer(stopWords, lemmatizer, LemmatizerService.Language.RU);
+        List<String> stopWords = Arrays.asList("это", "быть", "я");
+        extractor = new KeywordExtractor(stopWords, lemmatizer, LemmatizerService.Language.RU);
+        highlighter = new KeywordHighlighter();
     }
 
     @Test
     void testFilterAndLemmatize() {
         // Добавили слово "говорю" трижды, чтобы trigger'ить подсветку (>= 2 вхождений)
         String text = "Я говорю, я говорю, я говорю, что это было хорошо. Говорили города.";
-        String result = analyzer.analyzeAndHighlight(text, LemmatizerService.Language.RU);
+        KeywordExtractor.KeywordResult analysis = extractor.extract(text, LemmatizerService.Language.RU);
+        String result = highlighter.highlight(text, analysis);
         
         System.out.println("DEBUG: Result = " + result);
         
