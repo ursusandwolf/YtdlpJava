@@ -16,11 +16,13 @@
 ### Added
 - Comprehensive code review findings.
 - Custom exceptions for `ProcessExecutor` (`ProcessTimeoutException`, `ProcessExecutionException`).
+- `YtdlManagerException` for domain-specific error handling.
 - Global stop-words and filler dictionaries.
 - 5-stage resilience fallback strategy for yt-dlp.
 
 ### Changed
 - Refactored `SubtitleCleaner` to use Constructor Injection for better testability.
+- Refactored `YtdlManager` to throw `YtdlManagerException` and improved exception logging.
 - Optimized `SubtitleCleanerService` by pre-compiling regex patterns.
 - Split `KeywordAnalyzer` into `KeywordExtractor` and `KeywordHighlighter`.
 

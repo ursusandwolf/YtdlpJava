@@ -96,5 +96,6 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
 - [x] Split `KeywordAnalyzer` into `KeywordExtractor` and `MarkdownHighlighter`.
 - [x] Remove FQNs and optimize imports across the project.
 - [x] Refactor `Main` to improve service initialization and SRP.
+- [x] Implement `YtdlManagerException` and refactor exception handling in `YtdlManager`.
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.
 - [ ] Implement unit tests for `ProcessExecutor`.

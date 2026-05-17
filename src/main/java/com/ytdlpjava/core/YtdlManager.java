@@ -47,8 +47,8 @@ public class YtdlManager {
                 }
             }
         } catch (Exception e) {
-            log.error("Failed to fetch playlist or process: {}", e.getMessage());
-            throw new RuntimeException(e);
+            log.error("Failed to fetch playlist or process: ", e);
+            throw new YtdlManagerException("Failed to fetch playlist or process: " + e.getMessage(), e);
         }
     }
 }
