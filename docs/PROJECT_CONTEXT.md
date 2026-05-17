@@ -62,7 +62,7 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Implemented automatic creation of subdirectories for playlist content. `YtdlManager` now fetches the playlist title and organizes downloads into corresponding folders.
 - **Subtitle Quality & Maintenance**:
   - Refactored `SubtitleCleaner` to decouple paragraph breaks from timestamp headers, strictly enforcing a 600-800 character limit per paragraph for better readability.
-  - Significantly expanded the stop-words list (now `STOP_WORDS`) to exclude pronouns, common adverbs, and generic particles from keyword extraction, ensuring more meaningful summaries.
+  - Significantly expanded the Russian stop-words dictionary (`src/main/resources/dictionaries/stop_words_ru.txt`) with a comprehensive list of high-frequency general terms, fillers, and common verbs to ensure keyword extraction focuses on domain-specific, meaningful content.
   - Improved `SubtitleCleaner` by adding more filler words ("эм", "ам", "ээ") and fixing punctuation errors where dots were incorrectly left after prepositions (e.g., "с. Победой" -> "с Победой").
   - Updated `.gitignore` to exclude `txt/` and `output/` directories.
 - **Metadata Extraction**:
