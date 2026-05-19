@@ -2,6 +2,12 @@
 
 ## Current State
 The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
+## Recent Changes (2026-05-19)
+- **Universal Task Result Handling (v1.5.0)**:
+  - Implemented `TaskResultHandler` and `FileResultHandler` to decouple IO from processing tasks.
+  - Generalized all `VideoTask` implementations (`Subtitle`, `Audio`, `Video`, `Screenshot`, `Metadata`) to support multiple result handlers.
+  - Fixed `SubtitleCleanerTest.testKeywordExclusion` to ensure reliable test execution.
+
 ## Recent Changes (2026-05-10)
 - **Enhanced Reliability & Architecture**:
   - Implemented **exponential backoff retry logic** for `yt-dlp` commands to handle transient network errors.
@@ -25,8 +31,14 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Cleaned up residual temporary files from the project root.
 
 ## Pending Items
+- [ ] Refactor `Main.java` to remove God Factory method `createSubtitleProcessor` and hardcoded config.
+- [ ] Implement Dependency Injection (or Builder pattern) for `SubtitleCleaner`.
+- [ ] Migrate `LemmatizerService` to use Lucene (already in dependencies) instead of custom `RussianStemmer`.
+- [ ] Decouple formatting logic from `SubtitleCleaner` into `MarkdownFormatter`.
+- [ ] Improve `ProcessExecutor` path extraction (use `--print` or JSON metadata).
+- [ ] Split `KeywordHighlighter` into highlighting and summary generation.
 - [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.
-- [ ] Implement unit tests for `LemmatizerService` and `ProcessExecutor`.
+- [ ] Implement unit tests for `ProcessExecutor`.
 
   - Implemented **keyword extraction and highlighting**: automatically identifies the top 30 most frequent keywords (ignoring an expanded list of prepositions, pronouns, and common verbs) and highlights them in **bold** throughout the text.
   - Improved **filler word cleaning**: expanded detection to include "да" and implemented robust punctuation cleanup to prevent errors like ",.".

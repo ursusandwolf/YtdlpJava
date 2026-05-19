@@ -1,5 +1,18 @@
 # Changelog - YtdlpJava
 
+## [1.5.0] - 2026-05-19
+### Added
+- **Universal Task Result Handling**:
+  - Implemented `TaskResultHandler` interface to decouple output processing (files, notifications, etc.) from task logic.
+  - Added `FileResultHandler` for standard filesystem output.
+  - Generalized all tasks (`SubtitleTask`, `AudioTask`, `VideoDownloadTask`, `ScreenshotTask`, `MetadataTask`) to support multiple result handlers.
+- **Enhanced Test Reliability**:
+  - Fixed `SubtitleCleanerTest.testKeywordExclusion` by using more unique terms to avoid overlap with the extensive stop-word dictionary.
+
+### Changed
+- Refactored `SubtitleTask` to use temporary files for intermediate processing before handing off to result handlers.
+- Updated `Main.java` to inject `FileResultHandler` into all task types.
+
 ## [1.4.0] - 2026-05-13
 ### Changed
 - **Architectural Cleanup**:

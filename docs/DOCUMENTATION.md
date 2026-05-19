@@ -45,11 +45,14 @@ Following the code review on 2026-05-11:
 - **Modularity**: Split analysis and highlighting in `KeywordAnalyzer`.
 
 ### `com.ytdlpjava.task`
-Concrete implementations of `VideoTask`.
-- `SubtitleTask`: Pipeline for subtitle processing.
+Concrete implementations of `VideoTask`. All tasks now support `TaskResultHandler` for flexible output routing.
+- `TaskResultHandler`: Interface for handling processing results (e.g., saving to file, sending to Telegram).
+- `FileResultHandler`: Default implementation that moves result files to the final output directory.
+- `SubtitleTask`: Pipeline for subtitle processing. Now uses temporary files for intermediate Markdown result.
 - `AudioTask`: Pipeline for audio extraction.
-- `ScreenshotTask`: Captures periodic screenshots using ffmpeg fast-seeking.
+- `ScreenshotTask`: Captures periodic screenshots. Handlers are invoked in real-time for each captured frame.
 - `MetadataTask`: Saves descriptions and tags as JSON.
+- `VideoDownloadTask`: Handles standard video file downloads.
 
 ### `com.ytdlpjava.ui`
 - `InteractivePromptService`: Handles the terminal-based interactive wizard.

@@ -18,15 +18,12 @@ public class ScreenshotTask implements VideoTask {
     private final FilenameProvider filenameProvider;
     private final ProcessExecutor executor;
     private final int intervalSeconds;
+    private final List<TaskResultHandler> resultHandlers;
 
     @Override
     public void execute(String url, Path outputDir) throws Exception {
         String title = downloader.getTitle(url);
         String basename = filenameProvider.buildFilename(title, 60);
-
-        if (!Files.exists(outputDir)) {
-            Files.createDirectories(outputDir);
-        }
 
         log.info("Downloading video for reliable screenshot extraction: {}", title);
         Path videoFile = downloader.download(url, basename);
@@ -36,9 +33,9 @@ public class ScreenshotTask implements VideoTask {
             log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
 
             for (long ts = 0; ts < duration; ts += intervalSeconds) {
-                Path outputPath = outputDir.resolve(String.format("%s_%05d.jpg", basename, ts));
+                Path tempScreenshot = Files.createTempFile(String.format("%s_%05d", basename, ts), ".jpg");
                 
-                log.debug("Capturing frame at {} -> {}", ts, outputPath.getFileName());
+                log.debug("Capturing frame at {} -> {}", ts, tempScreenshot.getFileName());
                 
                 List<String> command = List.of(
                     "ffmpeg",
@@ -47,10 +44,21 @@ public class ScreenshotTask implements VideoTask {
                     "-frames:v", "1",
                     "-q:v", "2",
                     "-y",
-                    outputPath.toString()
+                    tempScreenshot.toString()
                 );
 
-                executor.run(command, "ffmpeg extraction failed");
+                try {
+                    executor.run(command, "ffmpeg extraction failed");
+                    for (TaskResultHandler handler : resultHandlers) {
+                        handler.handle(title + " (screenshot " + ts + "s)", tempScreenshot);
+                    }
+                } finally {
+                    if (Files.exists(tempScreenshot)) {
+                        try {
+                            Files.delete(tempScreenshot);
+                        } catch (Exception ignored) {}
+                    }
+                }
             }
             log.info("✅ Screenshot capture complete.");
         } finally {

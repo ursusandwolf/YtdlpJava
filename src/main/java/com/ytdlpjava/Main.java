@@ -14,9 +14,11 @@ import com.ytdlpjava.model.FilenameProvider;
 import com.ytdlpjava.model.VideoTask;
 import com.ytdlpjava.processor.SubtitleCleaner;
 import com.ytdlpjava.task.AudioTask;
+import com.ytdlpjava.task.FileResultHandler;
 import com.ytdlpjava.task.MetadataTask;
 import com.ytdlpjava.task.ScreenshotTask;
 import com.ytdlpjava.task.SubtitleTask;
+import com.ytdlpjava.task.TaskResultHandler;
 import com.ytdlpjava.task.VideoDownloadTask;
 import com.ytdlpjava.ui.InteractivePromptService;
 import com.ytdlpjava.util.FilenameGenerator;
@@ -130,12 +132,14 @@ public class Main {
     }
 
     private static VideoTask createTask(Main main, Downloader downloader, FilenameProvider filenameProvider, ProcessExecutor executor) {
+        List<TaskResultHandler> handlers = List.of(new FileResultHandler(Path.of(main.outputDir)));
+
         return switch (main.type.toLowerCase()) {
-            case "audio" -> new AudioTask(downloader, filenameProvider);
-            case "video" -> new VideoDownloadTask(downloader, filenameProvider);
-            case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, executor, main.interval);
-            case "metadata" -> new MetadataTask(downloader, filenameProvider);
-            case "sub" -> new SubtitleTask(downloader, createSubtitleProcessor(main.lang), filenameProvider);
+            case "audio" -> new AudioTask(downloader, filenameProvider, handlers);
+            case "video" -> new VideoDownloadTask(downloader, filenameProvider, handlers);
+            case "screenshot" -> new ScreenshotTask(downloader, filenameProvider, executor, main.interval, handlers);
+            case "metadata" -> new MetadataTask(downloader, filenameProvider, handlers);
+            case "sub" -> new SubtitleTask(downloader, createSubtitleProcessor(main.lang), filenameProvider, handlers);
             default -> throw new IllegalArgumentException("Unknown type: " + main.type);
         };
     }

@@ -30,6 +30,10 @@
 | (impls)        |     | (impls)       |    | (logic)           |
 +----------------+     +---------------+    +-------------------+
         |                      |                     |
+        |               +------v-------+             |
+        |               | ResultHandler|             |
+        |               +--------------+             |
+        |                      |                     |
         |                      |            +--------+----------+
         |                      |            | SubtitleCleaner   |
         |                      |            +--------+----------+
@@ -46,13 +50,7 @@
           +-----------------------+
 
         ## Strategy Pattern for Tasks
-        The `VideoTask` interface allows `YtdlManager` to process videos in different ways. `ScreenshotTask` now utilizes an injected `ProcessExecutor` for frame extraction.
+        The `VideoTask` interface allows `YtdlManager` to process videos in different ways. All tasks now utilize `TaskResultHandler` to delegate output processing (e.g., to the filesystem via `FileResultHandler` or potentially to Telegram).
 
-        ## Decomposed Processing (SubtitleCleaner)
-        `SubtitleCleaner` delegates to:
-        1. `Parser` extracts blocks from VTT.
-        2. `CleanerService` removes noise.
-        3. `MarkdownFormatter` builds the document structure.
-        4. `KeywordAnalyzer` highlights terms using `LemmatizerService` for accurate stemming.
-
-        > **Note (Code Review 2026-05-11):** Current implementation of `SubtitleCleaner` uses hardcoded dependencies. Migration to full Dependency Injection is planned to improve testability. `KeywordAnalyzer` is also targeted for splitting into extraction and formatting layers.
+        ## Screenshot Extraction Pipeline
+        `ScreenshotTask` triggers `TaskResultHandler` for each individual frame captured, allowing real-time processing/notification of progress.

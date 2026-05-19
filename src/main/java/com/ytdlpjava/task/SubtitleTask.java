@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -12,6 +13,7 @@ public class SubtitleTask implements VideoTask {
     private final Downloader downloader;
     private final ContentProcessor processor;
     private final FilenameProvider filenameProvider;
+    private final List<TaskResultHandler> resultHandlers;
 
     @Override
     public void execute(String url, Path outputDir) throws Exception {
@@ -19,20 +21,26 @@ public class SubtitleTask implements VideoTask {
         String basename = filenameProvider.buildFilename(title, 60);
         
         Path downloadedFile = downloader.download(url, basename);
+        Path tempSubtitleFile = null;
         try {
             String result = processor.process(downloadedFile);
             
-            if (!Files.exists(outputDir)) {
-                Files.createDirectories(outputDir);
-            }
+            // Create a temporary .md file
+            tempSubtitleFile = Files.createTempFile(basename, ".md");
+            Files.writeString(tempSubtitleFile, result);
             
-            Path outputPath = outputDir.resolve(basename + ".md");
-            Files.writeString(outputPath, result);
-            log.info("✅ Success! Subtitles saved to: {}", outputPath);
+            for (TaskResultHandler handler : resultHandlers) {
+                handler.handle(title, tempSubtitleFile);
+            }
         } finally {
             if (Files.exists(downloadedFile)) {
                 Files.delete(downloadedFile);
-                log.debug("Deleted temporary file: {}", downloadedFile);
+                log.debug("Deleted temporary VTT file: {}", downloadedFile);
+            }
+            if (tempSubtitleFile != null && Files.exists(tempSubtitleFile)) {
+                try {
+                    Files.delete(tempSubtitleFile);
+                } catch (Exception ignored) {}
             }
         }
     }

@@ -230,7 +230,7 @@ class SubtitleCleanerTest {
         String vttContent = "WEBVTT\n" +
                 "\n" +
                 "00:00:01.000 --> 00:00:10.000\n" +
-                "Человек говорит тебе о себе. Свое слово он сказал нас в мире жизни. Нет где почему дальше всем нас.\n";
+                "Марсоход приземлился тебе о себе. Свое коллайдер он сказал нас в мире адронный. Нет где почему дальше всем нас. Марсоход коллайдер адронный.\n";
         Files.writeString(vttPath, vttContent);
 
         String result = cleaner.process(vttPath);
@@ -238,8 +238,9 @@ class SubtitleCleanerTest {
         System.out.println("Exclusion Result:\n" + result);
         
         // Informative words should be keywords
-        assertTrue(result.contains("**Человек**") || result.contains("**человек**"));
-        assertTrue(result.contains("**Жизни**") || result.contains("**жизни**"));
+        assertTrue(result.contains("**Марсоход**") || result.contains("**марсоход**"));
+        assertTrue(result.contains("**Коллайдер**") || result.contains("**коллайдер**"));
+        assertTrue(result.contains("**Адронный**") || result.contains("**адронный**"));
         
         // Pronouns and noise should NOT be in the "Ключевые слова" summary
         assertFalse(result.contains("- **тебе**"), "Should exclude 'тебе'");

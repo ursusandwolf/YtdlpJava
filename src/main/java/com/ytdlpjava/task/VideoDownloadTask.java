@@ -5,13 +5,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 public class VideoDownloadTask implements VideoTask {
     private final Downloader downloader;
     private final FilenameProvider filenameProvider;
+    private final List<TaskResultHandler> resultHandlers;
 
     @Override
     public void execute(String url, Path outputDir) throws Exception {
@@ -21,13 +22,17 @@ public class VideoDownloadTask implements VideoTask {
         log.info("Downloading video: {}", title);
         Path downloadedFile = downloader.download(url, basename);
 
-        if (!Files.exists(outputDir)) {
-            Files.createDirectories(outputDir);
+        try {
+            for (TaskResultHandler handler : resultHandlers) {
+                handler.handle(title, downloadedFile);
+            }
+        } finally {
+            if (Files.exists(downloadedFile)) {
+                try {
+                    Files.delete(downloadedFile);
+                } catch (Exception ignored) {}
+            }
         }
-
-        Path targetPath = outputDir.resolve(downloadedFile.getFileName());
-        Files.move(downloadedFile, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        log.info("✅ Video successfully saved to: {}", targetPath);
     }
 
     @Override
