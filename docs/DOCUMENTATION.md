@@ -39,15 +39,22 @@ Implementations of the `Downloader` interface.
 - `MetadataDownloader`: JSON metadata extraction.
 
 ## Technical Debt & Road Map
-Following the code review on 2026-05-11:
+Updated: 2026-05-19
 - **Dependency Injection**: Plan to move `SubtitleCleaner` to full DI.
-- **Optimization**: Pre-compile regex in `SubtitleCleanerService`.
-- **Modularity**: Split analysis and highlighting in `KeywordAnalyzer`.
+- **Optimization**: (Completed) Pre-compile regex in `SubtitleCleanerService`.
+- **Modularity**: (Completed) Split analysis and highlighting in `KeywordAnalyzer`.
+- **Pending**:
+  - Implement Dependency Injection for `SubtitleCleaner`.
+  - Migrate `LemmatizerService` to Lucene.
+  - Decouple formatting from `SubtitleCleaner` into `MarkdownFormatter`.
+  - Add integration tests for `yt-dlp`.
+  - Unit tests for `ProcessExecutor`.
 
 ### `com.ytdlpjava.task`
 Concrete implementations of `VideoTask`. All tasks now support `TaskResultHandler` for flexible output routing.
 - `TaskResultHandler`: Interface for handling processing results (e.g., saving to file, sending to Telegram).
 - `FileResultHandler`: Default implementation that moves result files to the final output directory.
+- `TelegramResultHandler`: New implementation for sending results to Telegram bots via `java-telegram-bot-api`.
 - `SubtitleTask`: Pipeline for subtitle processing. Now uses temporary files for intermediate Markdown result.
 - `AudioTask`: Pipeline for audio extraction.
 - `ScreenshotTask`: Captures periodic screenshots. Handlers are invoked in real-time for each captured frame.

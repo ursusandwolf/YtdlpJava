@@ -26,7 +26,7 @@ public class SubtitleTask implements VideoTask {
             String result = processor.process(downloadedFile);
             
             // Create a temporary .md file
-            tempSubtitleFile = Files.createTempFile(basename, ".md");
+            tempSubtitleFile = java.nio.file.Paths.get(System.getProperty("java.io.tmpdir"), basename + ".md");
             Files.writeString(tempSubtitleFile, result);
             
             for (TaskResultHandler handler : resultHandlers) {

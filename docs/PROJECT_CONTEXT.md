@@ -31,7 +31,7 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Cleaned up residual temporary files from the project root.
 
 ## Pending Items
-- [ ] Refactor `Main.java` to remove God Factory method `createSubtitleProcessor` and hardcoded config.
+- [x] Comprehensive Code Review (completed 2026-05-19).
 - [ ] Implement Dependency Injection (or Builder pattern) for `SubtitleCleaner`.
 - [ ] Migrate `LemmatizerService` to use Lucene (already in dependencies) instead of custom `RussianStemmer`.
 - [ ] Decouple formatting logic from `SubtitleCleaner` into `MarkdownFormatter`.
