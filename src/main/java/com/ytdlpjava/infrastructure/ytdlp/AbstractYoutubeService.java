@@ -1,10 +1,11 @@
-package com.ytdlpjava.downloader;
+package com.ytdlpjava.infrastructure.ytdlp;
 
 import com.ytdlpjava.core.ProcessExecutor;
 import com.ytdlpjava.model.Downloader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public abstract class AbstractYoutubeService implements Downloader {
     protected final ProcessExecutor executor;
+    private final YtdlpOutputParser outputParser = new YtdlpOutputParser();
 
     protected String runResiliently(List<String> command, String errorMessage) throws IOException, InterruptedException {
         List<String> baseCommand = new ArrayList<>(command);
@@ -99,6 +101,11 @@ public abstract class AbstractYoutubeService implements Downloader {
                lower.contains("500") || 
                lower.contains("sign in to confirm your age") ||
                lower.contains("too many requests");
+    }
+
+    protected Path extractDownloadedPath(String output, String errorMessage) throws IOException {
+        return outputParser.findLastExistingFilePath(output)
+                .orElseThrow(() -> new IOException(errorMessage + ": downloaded file path not found in yt-dlp output"));
     }
 
     @Override

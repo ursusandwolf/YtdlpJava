@@ -1,6 +1,6 @@
 package com.ytdlpjava.core;
 
-import com.ytdlpjava.model.Downloader;
+import com.ytdlpjava.model.PlaylistProvider;
 import com.ytdlpjava.model.VideoTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,16 +13,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class YtdlManager {
     private final VideoTask task;
-    private final Downloader downloader;
+    private final PlaylistProvider playlistProvider;
 
     public void process(String url, Path outputDir) {
         try {
-            List<String> urls = downloader.getPlaylistUrls(url);
+            List<String> urls = playlistProvider.getPlaylistUrls(url);
             log.info("Found {} item(s) to process", urls.size());
 
             Path effectiveOutputDir = outputDir;
             if (urls.size() > 1 || url.contains("playlist?list=")) {
-                String playlistTitle = downloader.getPlaylistTitle(url);
+                String playlistTitle = playlistProvider.getPlaylistTitle(url);
                 if (playlistTitle != null && !playlistTitle.isEmpty() && !"NA".equalsIgnoreCase(playlistTitle)) {
                     log.info("Raw playlist title: {}", playlistTitle);
                     String sanitizedTitle = task.getFilenameProvider().buildFilename(playlistTitle, 60);

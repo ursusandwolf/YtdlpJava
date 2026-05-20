@@ -1,12 +1,12 @@
-package com.ytdlpjava.ui;
+package com.ytdlpjava.cli;
 
-import com.ytdlpjava.Main;
+import com.ytdlpjava.config.AppConfig;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Scanner;
 
 @Slf4j
 public class InteractivePromptService {
-    public void runInteractive(Main main) {
+    public void runInteractive(AppConfig config) {
         try (Scanner scanner = new Scanner(System.in)) {
             System.out.println("🎬 === YouTube Downloader & Processor ===");
             System.out.print("🔗 Введите ссылку на YouTube (видео или плейлист): ");
@@ -15,7 +15,7 @@ public class InteractivePromptService {
                 log.error("Ссылка не указана.");
                 System.exit(1);
             }
-            main.setVideoUrl(videoUrl);
+            config.setVideoUrl(videoUrl);
 
             System.out.println("\nВыберите тип задачи:");
             System.out.println("1. Субтитры (sub)");
@@ -26,7 +26,7 @@ public class InteractivePromptService {
             System.out.print("Введите номер (по умолчанию 1): ");
             
             String typeChoice = scanner.nextLine().trim();
-            main.setType(switch (typeChoice) {
+            config.setType(switch (typeChoice) {
                 case "2" -> "audio";
                 case "3" -> "video";
                 case "4" -> "screenshot";
@@ -34,7 +34,7 @@ public class InteractivePromptService {
                 default -> "sub";
             });
 
-            if ("sub".equalsIgnoreCase(main.getType())) {
+            if ("sub".equalsIgnoreCase(config.getType())) {
                 System.out.println("\nВыберите язык субтитров:");
                 System.out.println("1. Английский (en)");
                 System.out.println("2. Русский (ru)");
@@ -42,17 +42,17 @@ public class InteractivePromptService {
                 System.out.print("Введите номер или код языка [en]: ");
                 String inputLang = scanner.nextLine().trim();
                 if (!inputLang.isEmpty()) {
-                    main.setLang(switch (inputLang) {
+                    config.setLang(switch (inputLang) {
                         case "1" -> "en";
                         case "2" -> "ru";
                         case "3" -> "uk";
                         default -> inputLang;
                     });
                 }
-            } else if ("audio".equalsIgnoreCase(main.getType())) {
+            } else if ("audio".equalsIgnoreCase(config.getType())) {
                 System.out.print("🎵 Введите формат (opus, mp3, m4a) [opus]: ");
                 String fmt = scanner.nextLine().trim();
-                if (!fmt.isEmpty()) main.setAudioFormat(fmt);
+                if (!fmt.isEmpty()) config.setAudioFormat(fmt);
             }
         }
     }

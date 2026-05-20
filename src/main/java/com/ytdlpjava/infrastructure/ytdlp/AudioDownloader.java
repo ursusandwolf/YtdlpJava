@@ -1,4 +1,4 @@
-package com.ytdlpjava.downloader;
+package com.ytdlpjava.infrastructure.ytdlp;
 
 import com.ytdlpjava.core.ProcessExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class AudioDownloader extends AbstractYoutubeService {
         );
 
         log.info("Downloading audio ({}, q={}) for: {}", format, quality, videoUrl);
-        String filePath = runResiliently(command, "Audio download failed");
-        return Path.of(filePath);
+        String output = runResiliently(command, "Audio download failed");
+        return extractDownloadedPath(output, "Audio download failed");
     }
 }

@@ -56,6 +56,25 @@ class SubtitleCleanerTest {
     }
 
     @Test
+    void testCleanVttTextWithoutFilesystem() {
+        SubtitleCleaner cleaner = createCleaner(2, "en");
+        String vttContent = "WEBVTT\n" +
+                "\n" +
+                "00:00:01.000 --> 00:00:04.000\n" +
+                "<c.yellow>Hello</c> world!\n" +
+                "\n" +
+                "00:00:05.000 --> 00:00:08.000\n" +
+                "This is a <b>test</b>.\n";
+
+        String result = cleaner.processText(vttContent);
+
+        assertTrue(result.contains("### [00:00:01]"));
+        assertTrue(result.contains("Hello world!"));
+        assertTrue(result.contains("### [00:00:05]"));
+        assertTrue(result.contains("This is a test."));
+    }
+
+    @Test
     void testKeywordsExtraction(@TempDir Path tempDir) throws IOException {
         SubtitleCleaner cleaner = createCleaner(10, "en");
         Path vttPath = tempDir.resolve("keywords.vtt");

@@ -5,17 +5,31 @@ YtdlpJava is a specialized tool for interacting with YouTube content using `yt-d
 
 ## Architecture & Packages
 
+### `com.ytdlpjava.cli`
+Command-line entrypoint and interactive prompt.
+- `Main`: CLI parsing and application startup.
+- `InteractivePromptService`: Terminal-based interactive wizard.
+- `com.ytdlpjava.Main`: Backward-compatible delegating entrypoint.
+
+### `com.ytdlpjava.config`
+Composition root and runtime configuration.
+- `AppConfig`: Parsed CLI/interactive configuration.
+- `ApplicationFactory`: Wires application ports to infrastructure implementations.
+
 ### `com.ytdlpjava.core`
 The heartbeat of the application.
 - `YtdlManager`: Orchestrates the download process, handles playlists, and executes tasks.
-- `ProcessExecutor`: Manages external command execution (`yt-dlp`, `ffmpeg`) with real-time logging and timeouts.
+- `ProcessExecutor`: Manages external command execution with real-time logging and timeouts.
 
 ### `com.ytdlpjava.model`
 Core abstractions and interfaces.
 - `Downloader`: Interface for yt-dlp operations.
+- Narrow ports: `MediaDownloader`, `TitleProvider`, `DurationProvider`, `PlaylistProvider`, `StreamUrlProvider`.
 - `VideoTask`: Strategy interface for different processing pipelines.
-- `ContentProcessor`: Interface for post-download data transformation.
+- `ContentProcessor` / `TextProcessor`: Interfaces for post-download data transformation.
 - `FilenameProvider`: Interface for name generation.
+- `FrameExtractor`: Interface for extracting frames from video files.
+- `TemporaryFileManager`: Interface for temporary file lifecycle.
 
 ### `com.ytdlpjava.processor`
 Advanced content processing logic (primarily for subtitles).
@@ -25,8 +39,8 @@ Advanced content processing logic (primarily for subtitles).
 - `KeywordAnalyzer`: Multi-language keyword extraction and stemming (RU/EN).
 - `MarkdownFormatter`: Markdown transformation, line wrapping, and length enforcement.
 
-### `com.ytdlpjava.downloader`
-Implementations of the `Downloader` interface.
+### `com.ytdlpjava.infrastructure.ytdlp`
+yt-dlp adapters and output parsing.
 - `AbstractYoutubeService`: Base class with a 5-stage resilience fallback strategy:
   1. Default with retries.
   2. Android client.
@@ -37,6 +51,13 @@ Implementations of the `Downloader` interface.
 - `AudioDownloader`: Optimized for audio extraction (opus, mp3, m4a).
 - `VideoDownloader`: Standard video downloads.
 - `MetadataDownloader`: JSON metadata extraction.
+- `YtdlpOutputParser`: Parses yt-dlp output for downloaded file paths.
+
+### `com.ytdlpjava.infrastructure.ffmpeg`
+- `FfmpegFrameExtractor`: ffmpeg-backed implementation of `FrameExtractor`.
+
+### `com.ytdlpjava.infrastructure.filesystem`
+- `FilesystemTemporaryFileManager`: filesystem-backed temporary file lifecycle.
 
 ## Technical Debt & Road Map
 Updated: 2026-05-19
@@ -60,9 +81,6 @@ Concrete implementations of `VideoTask`. All tasks now support `TaskResultHandle
 - `ScreenshotTask`: Captures periodic screenshots. Handlers are invoked in real-time for each captured frame.
 - `MetadataTask`: Saves descriptions and tags as JSON.
 - `VideoDownloadTask`: Handles standard video file downloads.
-
-### `com.ytdlpjava.ui`
-- `InteractivePromptService`: Handles the terminal-based interactive wizard.
 
 ### `com.ytdlpjava.util`
 - `DictionaryLoader`: Resource-based loader for stop-words and fillers.

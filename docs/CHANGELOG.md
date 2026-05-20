@@ -1,5 +1,18 @@
 # Changelog - YtdlpJava
 
+## [1.5.1] - 2026-05-20
+### Added
+- Added `cli`, `config`, and `infrastructure` packages to separate application wiring from runtime adapters.
+- Added explicit ports for media download, playlist lookup, title resolution, duration lookup, frame extraction, temporary files, and text processing.
+- Added tests for `AppConfig` and `FilesystemTemporaryFileManager`.
+
+### Changed
+- Moved yt-dlp implementations from `downloader` to `infrastructure.ytdlp`.
+- Moved interactive CLI handling to `cli` and retained `com.ytdlpjava.Main` as a compatibility delegate.
+- Simplified `cli.Main` by parsing `AppConfig` directly instead of duplicating CLI fields.
+- Updated `ScreenshotTask` to use `FrameExtractor` and `TemporaryFileManager`.
+- Refreshed architecture docs and UML to reflect the layered package layout.
+
 ## [1.5.0] - 2026-05-19
 ### Added
 - **Universal Task Result Handling**:

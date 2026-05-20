@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.1] - 2026-05-20
+
+### Added
+- **Layered Application Structure**:
+  - Added `cli` and `config` packages with `AppConfig`, `ApplicationFactory`, and a dedicated interactive prompt entry flow.
+  - Added infrastructure adapters for `yt-dlp`, `ffmpeg`, and temporary filesystem operations.
+  - Added narrow model ports: `MediaDownloader`, `TitleProvider`, `DurationProvider`, `PlaylistProvider`, `StreamUrlProvider`, `FrameExtractor`, `TemporaryFileManager`, and `TextProcessor`.
+- **Test Coverage for New Boundaries**:
+  - Added tests for `YtdlpOutputParser`, `FilesystemTemporaryFileManager`, `TelegramResultHandler`, and `AppConfig`.
+
+### Changed
+- **Architecture Refactoring**:
+  - Moved the legacy downloader implementations into `com.ytdlpjava.infrastructure.ytdlp`.
+  - Moved the interactive terminal flow into `com.ytdlpjava.cli`.
+  - Kept `com.ytdlpjava.Main` as a backward-compatible delegating entrypoint.
+  - Refactored `Downloader` into a composed interface over narrower ports.
+  - Updated `ScreenshotTask` to depend on `FrameExtractor` and `TemporaryFileManager` instead of directly invoking `ffmpeg` and `Files`.
+  - Centralized CLI parameter parsing in `AppConfig` and simplified `cli.Main`.
+- **Documentation Refresh**:
+  - Updated package-level architecture documentation and UML to match the new layered layout.
+
 ## [1.3.13] - 2026-05-10
 
 ### Added

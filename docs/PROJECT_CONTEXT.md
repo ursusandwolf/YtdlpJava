@@ -84,6 +84,10 @@ The project is a Java-based wrapper around `yt-dlp` for downloading and processi
   - Reorganized all classes into logical sub-packages: `core`, `model`, `downloader`, `task`, `processor`, `util`, and `ui`.
   - Moved unit tests to matching sub-packages in `src/test/java`.
   - Updated all imports and package declarations to ensure build integrity.
+- **Layered Package Re-layout**: (2026-05-20)
+  - Moved CLI implementation to `com.ytdlpjava.cli` while keeping `com.ytdlpjava.Main` as a compatibility delegate.
+  - Moved yt-dlp adapters from `com.ytdlpjava.downloader` to `com.ytdlpjava.infrastructure.ytdlp`.
+  - Added explicit infrastructure packages for `ffmpeg`, filesystem temporary files, and yt-dlp output parsing.
 - **Improved English Keyword Extraction**: (2026-05-08)
   - Created a comprehensive English stop-words dictionary (`src/main/resources/dictionaries/stop_words_en.txt`).
   - Updated `SubtitleCleaner` to dynamically load stop-words based on the subtitle language.

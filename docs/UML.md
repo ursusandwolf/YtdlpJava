@@ -5,30 +5,31 @@
 ```text
 +-----------------------------------------------------------+
 |                      com.ytdlpjava                        |
-|   +------+       +---------------------------+            |
-|   | Main |------>| InteractivePromptService  | (ui)       |
-|   +------+       +---------------------------+            |
+|   +------+                                               |
+|   | Main | (backward-compatible delegate)                 |
+|   +------+                                               |
 |       |                                                   |
 +-------|---------------------------------------------------+
         v
 +-----------------------------------------------------------+
-|                    com.ytdlpjava.core                     |
-|   +-----------------+        +-----------------+          |
-|   |   YtdlManager   |------->| ProcessExecutor |          |
-|   +-----------------+        +-----------------+          |
+|                    com.ytdlpjava.cli                      |
+|   +------+       +---------------------------+            |
+|   | Main |------>| InteractivePromptService  |            |
+|   +------+       +---------------------------+            |
 +-------|---------------------------------------------------+
         v
 +-----------------------------------------------------------+
-|                    com.ytdlpjava.model                    |
-|   +------------+    +-----------+    +------------------+ |
-|   | Downloader |    | VideoTask |    | ContentProcessor | |
-|   +------------+    +-----------+    +------------------+ |
+|                    com.ytdlpjava.config                   |
+|   +-------------+       +--------------------+            |
+|   |  AppConfig  |------>| ApplicationFactory |            |
+|   +-------------+       +--------------------+            |
 +-------|----------------------|-------------------|--------+
-        v                      v                   v
-+----------------+     +---------------+    +-------------------+
-| .downloader    |     | .task         |    | .processor        |
-| (impls)        |     | (impls)       |    | (logic)           |
-+----------------+     +---------------+    +-------------------+
+        v                      v
++----------------+     +-----------------------------------------+
+| .core          |     | .model                                 |
+| YtdlManager    |     | ports: VideoTask, MediaDownloader,     |
+| ProcessExecutor|     | FrameExtractor, TemporaryFileManager   |
++----------------+     +-----------------------------------------+
         |                      |                     |
         |               +------v-------+             |
         |               | ResultHandler|             |
@@ -44,13 +45,12 @@
                    |
                    v
           +-----------------------+
-          | com.ytdlpjava.util    |
-          | (FilenameGenerator)   |
-          | (LemmatizerService)   |
+          | infrastructure        |
+          | ytdlp / ffmpeg / fs   |
           +-----------------------+
 
         ## Strategy Pattern for Tasks
         The `VideoTask` interface allows `YtdlManager` to process videos in different ways. All tasks now utilize `TaskResultHandler` to delegate output processing (e.g., to the filesystem via `FileResultHandler` or potentially to Telegram).
 
         ## Screenshot Extraction Pipeline
-        `ScreenshotTask` triggers `TaskResultHandler` for each individual frame captured, allowing real-time processing/notification of progress.
+        `ScreenshotTask` depends on `FrameExtractor`; the ffmpeg command is implemented by `FfmpegFrameExtractor` in infrastructure.

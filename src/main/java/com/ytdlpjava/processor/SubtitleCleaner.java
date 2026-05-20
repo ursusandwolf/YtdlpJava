@@ -1,6 +1,7 @@
 package com.ytdlpjava.processor;
 
 import com.ytdlpjava.model.ContentProcessor;
+import com.ytdlpjava.model.TextProcessor;
 import com.ytdlpjava.util.LemmatizerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-public class SubtitleCleaner implements ContentProcessor {
+public class SubtitleCleaner implements ContentProcessor, TextProcessor {
     private final int minTimestampGapSeconds;
     private final LemmatizerService.Language language;
     private final SubtitleParser parser;
@@ -27,8 +28,12 @@ public class SubtitleCleaner implements ContentProcessor {
     public String process(Path vttPath) throws IOException {
         log.info("Cleaning subtitles ({}): {}", language, vttPath.getFileName());
         String rawText = Files.readString(vttPath, StandardCharsets.UTF_8);
-        
-        List<SubtitleParser.SubtitleBlock> blocks = parser.parse(rawText);
+        return processText(rawText);
+    }
+
+    @Override
+    public String processText(String input) {
+        List<SubtitleParser.SubtitleBlock> blocks = parser.parse(input);
         List<String> items = new ArrayList<>();
         
         Duration lastTimestampHeader = null;

@@ -1,71 +1,59 @@
 package com.ytdlpjava.task;
 
-import com.ytdlpjava.model.Downloader;
+import com.ytdlpjava.model.DurationProvider;
 import com.ytdlpjava.model.FilenameProvider;
+import com.ytdlpjava.model.FrameExtractor;
+import com.ytdlpjava.model.MediaDownloader;
+import com.ytdlpjava.model.TemporaryFileManager;
+import com.ytdlpjava.model.TitleProvider;
 import com.ytdlpjava.model.VideoTask;
-import com.ytdlpjava.core.ProcessExecutor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 public class ScreenshotTask implements VideoTask {
-    private final Downloader downloader;
+    private final MediaDownloader downloader;
+    private final TitleProvider titleProvider;
+    private final DurationProvider durationProvider;
     private final FilenameProvider filenameProvider;
-    private final ProcessExecutor executor;
+    private final FrameExtractor frameExtractor;
+    private final TemporaryFileManager temporaryFileManager;
     private final int intervalSeconds;
     private final List<TaskResultHandler> resultHandlers;
 
     @Override
     public void execute(String url, Path outputDir) throws Exception {
-        String title = downloader.getTitle(url);
+        String title = titleProvider.getTitle(url);
         String basename = filenameProvider.buildFilename(title, 60);
 
         log.info("Downloading video for reliable screenshot extraction: {}", title);
         Path videoFile = downloader.download(url, basename);
         
         try {
-            long duration = downloader.getDuration(url);
+            long duration = durationProvider.getDuration(url);
             log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
 
             for (long ts = 0; ts < duration; ts += intervalSeconds) {
-                Path tempScreenshot = Files.createTempFile(String.format("%s_%05d", basename, ts), ".jpg");
+                Path tempScreenshot = temporaryFileManager.createTempFile(String.format("%s_%05d", basename, ts), ".jpg");
                 
                 log.debug("Capturing frame at {} -> {}", ts, tempScreenshot.getFileName());
-                
-                List<String> command = List.of(
-                    "ffmpeg",
-                    "-ss", String.valueOf(ts),
-                    "-i", videoFile.toString(),
-                    "-frames:v", "1",
-                    "-q:v", "2",
-                    "-y",
-                    tempScreenshot.toString()
-                );
 
                 try {
-                    executor.run(command, "ffmpeg extraction failed");
+                    frameExtractor.extractFrame(videoFile, ts, tempScreenshot);
                     for (TaskResultHandler handler : resultHandlers) {
                         handler.handle(title + " (screenshot " + ts + "s)", tempScreenshot);
                     }
                 } finally {
-                    if (Files.exists(tempScreenshot)) {
-                        try {
-                            Files.delete(tempScreenshot);
-                        } catch (Exception ignored) {}
-                    }
+                    temporaryFileManager.deleteIfExists(tempScreenshot);
                 }
             }
             log.info("✅ Screenshot capture complete.");
         } finally {
-            if (Files.exists(videoFile)) {
-                Files.delete(videoFile);
-                log.debug("Deleted temporary video file: {}", videoFile);
-            }
+            temporaryFileManager.deleteIfExists(videoFile);
+            log.debug("Deleted temporary video file: {}", videoFile);
         }
     }
 

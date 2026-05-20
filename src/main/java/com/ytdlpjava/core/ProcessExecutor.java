@@ -4,9 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +25,6 @@ public class ProcessExecutor {
                 .redirectErrorStream(true)
                 .start();
 
-        String resultPath = null;
         StringBuilder output = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -36,19 +32,6 @@ public class ProcessExecutor {
                 if (!line.isBlank()) {
                     log.info(line); // Real-time progress logging
                     output.append(line).append("\n");
-                    
-                    // Path extraction: look for absolute paths or existing files
-                    String trimmedLine = line.trim();
-                    if (isPotentialPath(trimmedLine)) {
-                        try {
-                            Path possiblePath = Path.of(trimmedLine);
-                            if (Files.exists(possiblePath) && Files.isRegularFile(possiblePath)) {
-                                resultPath = trimmedLine;
-                            }
-                        } catch (InvalidPathException | SecurityException ignored) {
-                            // Ignore invalid paths
-                        }
-                    }
                 }
             }
         }
@@ -65,10 +48,6 @@ public class ProcessExecutor {
             throw new ProcessExecutionException(errorMessage, exitCode, output.toString());
         }
 
-        return resultPath != null ? resultPath : output.toString().trim();
-    }
-
-    private boolean isPotentialPath(String line) {
-        return !line.startsWith("[") && (line.contains("/") || line.contains("\\") || line.contains(":"));
+        return output.toString().trim();
     }
 }

@@ -1,4 +1,4 @@
-package com.ytdlpjava.downloader;
+package com.ytdlpjava.infrastructure.ytdlp;
 
 import com.ytdlpjava.core.ProcessExecutor;
 import lombok.extern.slf4j.Slf4j;

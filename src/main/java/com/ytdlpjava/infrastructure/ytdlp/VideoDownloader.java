@@ -1,4 +1,4 @@
-package com.ytdlpjava.downloader;
+package com.ytdlpjava.infrastructure.ytdlp;
 
 import com.ytdlpjava.core.ProcessExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ public class VideoDownloader extends AbstractYoutubeService {
         );
 
         log.info("Downloading video (720p max) for: {}", videoUrl);
-        String filePath = runResiliently(command, "Video download failed");
-        return Path.of(filePath);
+        String output = runResiliently(command, "Video download failed");
+        return extractDownloadedPath(output, "Video download failed");
     }
 }
