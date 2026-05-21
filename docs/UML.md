@@ -36,29 +36,34 @@
         |               +--------------+             |
         |                      |                     |
         |                      |            +--------+----------+
-        |                      |            | SubtitleCleaner   |
+        |                      |            | SubtitleFileProc  |
         |                      |            +--------+----------+
         |                      |                     |
-        |                      |      +--------------+-------------+
-        | Parser | Cleaner | Analyzer|
-        +----------------------------+
-                   |
-                   v
-          +-----------------------+
-          | .subtitle             |
-          | Parser | Assembler    |
-          | Config | Block        |
-          +-----------------------+
-                   |
-                   v
-          +-----------------------+
-          | infrastructure        |
-          | ytdlp / ffmpeg / fs   |
-          +-----------------------+
-
+        |                      |            +--------v----------+
+        |                      |            |  SubtitleCleaner  |
+        |                      |            +--------+----------+
+        |                      |                     |
+        +----------------------+      +--------------+-------------+
+                                      | Highlighter | Formatter    |
+                                      | Extractor   |              |
+                                      +--------------+-------------+
+                                                     |
+                                                     v
+                                            +-----------------------+
+                                            | .subtitle             |
+                                            | Parser | Assembler    |
+                                            | Config | Block        |
+                                            +-----------------------+
+                                                     |
+                                                     v
+                                            +-----------------------+
+                                            | infrastructure        |
+                                            | ytdlp / ffmpeg / fs   |
+                                            +-----------------------+
 
         ## Strategy Pattern for Tasks
         The `VideoTask` interface allows `YtdlManager` to process videos in different ways. All tasks now utilize `TaskResultHandler` to delegate output processing (e.g., to the filesystem via `FileResultHandler` or potentially to Telegram).
 
         ## Screenshot Extraction Pipeline
         `ScreenshotTask` depends on `FrameExtractor`; the ffmpeg command is implemented by `FfmpegFrameExtractor` in infrastructure.
+```
