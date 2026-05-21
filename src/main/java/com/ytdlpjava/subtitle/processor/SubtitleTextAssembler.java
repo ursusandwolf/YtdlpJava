@@ -3,6 +3,7 @@ package com.ytdlpjava.subtitle.processor;
 import com.ytdlpjava.subtitle.api.SubtitleProcessor;
 import com.ytdlpjava.subtitle.config.SubtitleConfig;
 import com.ytdlpjava.subtitle.model.SubtitleBlock;
+import com.ytdlpjava.util.TextFormatUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
@@ -32,10 +33,10 @@ public class SubtitleTextAssembler implements SubtitleProcessor {
                     items.add(currentParagraph.toString().trim());
                     currentParagraph.setLength(0);
                 }
-                items.add("### [" + formatTimestamp(timestamp) + "]");
+                items.add("### [" + TextFormatUtils.formatTimestamp(timestamp) + "]");
                 lastTimestampHeader = timestamp;
-            } else if (currentParagraph.length() > config.paragraphLengthLimit()) {
-                if (isSentenceEnding(currentParagraph.charAt(currentParagraph.length() - 1))) {
+            } else if (currentParagraph.length() > config.paragraphSoftLimit()) {
+                if (TextFormatUtils.isSentenceEnding(currentParagraph.charAt(currentParagraph.length() - 1))) {
                     items.add(currentParagraph.toString().trim());
                     currentParagraph.setLength(0);
                 }
@@ -56,14 +57,5 @@ public class SubtitleTextAssembler implements SubtitleProcessor {
             items.add(currentParagraph.toString().trim());
         }
         return items;
-    }
-
-    private String formatTimestamp(Duration d) {
-        long s = d.getSeconds();
-        return String.format("%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60);
-    }
-
-    private boolean isSentenceEnding(char c) {
-        return c == '.' || c == '!' || c == '?' || c == '…';
     }
 }

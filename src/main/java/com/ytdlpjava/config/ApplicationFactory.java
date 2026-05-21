@@ -18,7 +18,8 @@ import com.ytdlpjava.processor.KeywordHighlighter;
 import com.ytdlpjava.processor.MarkdownFormatter;
 import com.ytdlpjava.processor.SubtitleCleaner;
 import com.ytdlpjava.processor.SubtitleCleanerService;
-import com.ytdlpjava.processor.SubtitleParser;
+import com.ytdlpjava.subtitle.config.SubtitleConfig;
+import com.ytdlpjava.subtitle.processor.SubtitleParser;
 import com.ytdlpjava.task.AudioTask;
 import com.ytdlpjava.task.FileResultHandler;
 import com.ytdlpjava.task.MetadataTask;
@@ -85,7 +86,7 @@ public class ApplicationFactory {
         }
 
         return new SubtitleCleaner(
-                180,
+                new SubtitleConfig(180, 600, 800),
                 language,
                 new SubtitleParser(),
                 new SubtitleCleanerService(DictionaryLoader.load("/dictionaries/fillers.txt")),

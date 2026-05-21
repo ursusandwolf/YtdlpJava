@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,58 +23,49 @@ public abstract class AbstractYoutubeService implements Downloader {
             baseCommand.add(2, "node");
         }
 
-        // 1. Try original command with retries for transient errors
-        try {
-            return runWithRetries(baseCommand, errorMessage, 3);
-        } catch (RuntimeException e) {
-            log.warn("Default attempt failed: {}. Retrying with android client...", e.getMessage());
-        }
+        List<FallbackStrategy> strategies = List.of(
+            new FallbackStrategy("Default", cmd -> cmd, 3),
+            new FallbackStrategy("Android", cmd -> addExtractorArgs(cmd, "youtube:player_client=android"), 2),
+            new FallbackStrategy("Mweb", cmd -> addExtractorArgs(cmd, "youtube:player_client=mweb"), 2),
+            new FallbackStrategy("Embedded", cmd -> addExtractorArgs(cmd, "youtube:player_client=embedded"), 2),
+            new FallbackStrategy("Desperate", this::applyDesperateFallback, 1)
+        );
 
-        // 2. Try specifically with android
-        try {
-            List<String> androidFallback = new ArrayList<>(baseCommand);
-            androidFallback.add(1, "--extractor-args");
-            androidFallback.add(2, "youtube:player_client=android");
-            return runWithRetries(androidFallback, errorMessage, 2);
-        } catch (RuntimeException e) {
-            log.warn("Android fallback failed. Retrying with mweb client...");
-        }
-
-        // 3. Try with mweb client
-        try {
-            List<String> mwebFallback = new ArrayList<>(baseCommand);
-            mwebFallback.add(1, "--extractor-args");
-            mwebFallback.add(2, "youtube:player_client=mweb");
-            return runWithRetries(mwebFallback, errorMessage, 2);
-        } catch (RuntimeException e) {
-            log.warn("Mweb fallback failed. Retrying with embedded client...");
-        }
-
-        // 4. Try with embedded client
-        try {
-            List<String> embeddedFallback = new ArrayList<>(baseCommand);
-            embeddedFallback.add(1, "--extractor-args");
-            embeddedFallback.add(2, "youtube:player_client=embedded");
-            return runWithRetries(embeddedFallback, errorMessage, 2);
-        } catch (RuntimeException e) {
-            log.warn("Embedded fallback failed. Retrying with config-skip mode...");
-        }
-
-        // 5. Last resort desperation fallback
-        List<String> desperateFallback = new ArrayList<>(baseCommand);
-        desperateFallback.add(1, "--extractor-args");
-        desperateFallback.add(2, "youtube:skip=dash,hls;player_skip=configs");
-        desperateFallback.add("--skip-unavailable-fragments");
-        
-        if (baseCommand.contains("--write-auto-sub")) {
-            int subFormatIdx = desperateFallback.indexOf("--sub-format");
-            if (subFormatIdx != -1) {
-                desperateFallback.set(subFormatIdx + 1, "vtt/json3/srv1/srv2/srv3/best");
+        for (int i = 0; i < strategies.size(); i++) {
+            FallbackStrategy strategy = strategies.get(i);
+            boolean isLast = (i == strategies.size() - 1);
+            try {
+                return runWithRetries(strategy.mutator().apply(baseCommand), 
+                                     isLast ? errorMessage + " (All fallbacks failed)" : errorMessage, 
+                                     strategy.retries());
+            } catch (RuntimeException e) {
+                if (isLast) throw e;
+                log.warn("{} attempt failed: {}. Retrying with next strategy...", strategy.name(), e.getMessage());
             }
         }
-        
-        return runWithRetries(desperateFallback, errorMessage + " (All fallbacks failed)", 1);
+        throw new RuntimeException(errorMessage);
     }
+
+    private List<String> addExtractorArgs(List<String> cmd, String args) {
+        List<String> c = new ArrayList<>(cmd);
+        c.add(1, "--extractor-args");
+        c.add(2, args);
+        return c;
+    }
+
+    private List<String> applyDesperateFallback(List<String> cmd) {
+        List<String> c = addExtractorArgs(cmd, "youtube:skip=dash,hls;player_skip=configs");
+        c.add("--skip-unavailable-fragments");
+        if (cmd.contains("--write-auto-sub")) {
+            int subFormatIdx = c.indexOf("--sub-format");
+            if (subFormatIdx != -1 && subFormatIdx + 1 < c.size()) {
+                c.set(subFormatIdx + 1, "vtt/json3/srv1/srv2/srv3/best");
+            }
+        }
+        return c;
+    }
+
+    private record FallbackStrategy(String name, UnaryOperator<List<String>> mutator, int retries) {}
 
     private String runWithRetries(List<String> command, String errorMessage, int maxRetries) throws IOException, InterruptedException {
         int attempt = 0;

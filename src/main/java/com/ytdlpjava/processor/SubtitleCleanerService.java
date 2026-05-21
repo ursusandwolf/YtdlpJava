@@ -1,5 +1,6 @@
 package com.ytdlpjava.processor;
 
+import org.apache.commons.text.StringEscapeUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +33,7 @@ public class SubtitleCleanerService {
             line = SPEAKER_TAGS.matcher(line).replaceAll("");
             line = smartCleanFillers(line);
             line = MULTIPLE_SPACES.matcher(line).replaceAll(" ");
-            line = unescapeHtml(line.trim());
+            line = StringEscapeUtils.unescapeHtml4(line.trim());
             if (!line.isEmpty()) cleaned.add(line);
         }
         return cleaned;
@@ -51,9 +52,5 @@ public class SubtitleCleanerService {
         result = PREPOSITION_DOT.matcher(result).replaceAll("$1$2 ");
         
         return MULTIPLE_SPACES.matcher(result).replaceAll(" ").trim();
-    }
-
-    private String unescapeHtml(String s) {
-        return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&#39;", "'");
     }
 }

@@ -2,7 +2,11 @@ package com.ytdlpjava.processor;
 
 import com.ytdlpjava.model.ContentProcessor;
 import com.ytdlpjava.model.TextProcessor;
+import com.ytdlpjava.subtitle.config.SubtitleConfig;
+import com.ytdlpjava.subtitle.model.SubtitleBlock;
+import com.ytdlpjava.subtitle.processor.SubtitleParser;
 import com.ytdlpjava.util.LemmatizerService;
+import com.ytdlpjava.util.TextFormatUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
@@ -16,7 +20,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class SubtitleCleaner implements ContentProcessor, TextProcessor {
-    private final int minTimestampGapSeconds;
+    private final SubtitleConfig config;
     private final LemmatizerService.Language language;
     private final SubtitleParser parser;
     private final SubtitleCleanerService cleanerService;
@@ -33,31 +37,31 @@ public class SubtitleCleaner implements ContentProcessor, TextProcessor {
 
     @Override
     public String processText(String input) {
-        List<SubtitleParser.SubtitleBlock> blocks = parser.parse(input);
+        List<SubtitleBlock> blocks = parser.parse(input);
         List<String> items = new ArrayList<>();
         
         Duration lastTimestampHeader = null;
         StringBuilder currentParagraph = new StringBuilder();
         String lastAddedLine = null;
 
-        for (SubtitleParser.SubtitleBlock block : blocks) {
+        for (SubtitleBlock block : blocks) {
             List<String> lines = cleanerService.cleanTextBlock(block.text());
             if (lines.isEmpty()) continue;
 
             Duration timestamp = block.timestamp();
             
-            if (lastTimestampHeader == null || timestamp.minus(lastTimestampHeader).getSeconds() >= minTimestampGapSeconds) {
+            if (lastTimestampHeader == null || timestamp.minus(lastTimestampHeader).getSeconds() >= config.minTimestampGapSeconds()) {
                 if (currentParagraph.length() > 0) {
                     items.add(currentParagraph.toString().trim());
                     currentParagraph.setLength(0);
                 }
-                items.add("### [" + formatTimestamp(timestamp) + "]");
+                items.add("### [" + TextFormatUtils.formatTimestamp(timestamp) + "]");
                 lastTimestampHeader = timestamp;
-            } else if (currentParagraph.length() > 600) {
-                if (isSentenceEnding(currentParagraph.charAt(currentParagraph.length() - 1))) {
+            } else if (currentParagraph.length() > config.paragraphSoftLimit()) {
+                if (TextFormatUtils.isSentenceEnding(currentParagraph.charAt(currentParagraph.length() - 1))) {
                     items.add(currentParagraph.toString().trim());
                     currentParagraph.setLength(0);
-                } else if (currentParagraph.length() > 800) {
+                } else if (currentParagraph.length() > config.paragraphHardLimit()) {
                     items.add(currentParagraph.toString().trim());
                     currentParagraph.setLength(0);
                 }
@@ -81,14 +85,5 @@ public class SubtitleCleaner implements ContentProcessor, TextProcessor {
         String mainText = formatter.format(items);
         KeywordExtractor.KeywordResult analysis = extractor.extract(mainText, language);
         return highlighter.highlight(mainText, analysis);
-    }
-
-    private String formatTimestamp(Duration d) {
-        long s = d.getSeconds();
-        return String.format("%02d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60);
-    }
-
-    private boolean isSentenceEnding(char c) {
-        return c == '.' || c == '!' || c == '?' || c == '…';
     }
 }

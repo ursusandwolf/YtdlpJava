@@ -1,5 +1,7 @@
 package com.ytdlpjava.processor;
 
+import com.ytdlpjava.subtitle.config.SubtitleConfig;
+import com.ytdlpjava.subtitle.processor.SubtitleParser;
 import com.ytdlpjava.util.DictionaryLoader;
 import com.ytdlpjava.util.LemmatizerService;
 import org.junit.jupiter.api.Test;
@@ -24,7 +26,7 @@ class SubtitleCleanerTest {
         }
         
         return new SubtitleCleaner(
-                gap,
+                new SubtitleConfig(gap, 600, 800),
                 language,
                 new SubtitleParser(),
                 new SubtitleCleanerService(DictionaryLoader.load("/dictionaries/fillers.txt")),

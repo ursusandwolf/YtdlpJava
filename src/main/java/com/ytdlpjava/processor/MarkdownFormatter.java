@@ -1,5 +1,6 @@
 package com.ytdlpjava.processor;
 
+import com.ytdlpjava.util.TextFormatUtils;
 import java.util.List;
 
 public class MarkdownFormatter {
@@ -27,7 +28,7 @@ public class MarkdownFormatter {
                 }
                 
                 if (prevParagraph != null) {
-                    if (!isSentenceEnding(prevParagraph.charAt(prevParagraph.length() - 1))) {
+                    if (!TextFormatUtils.isSentenceEnding(prevParagraph.charAt(prevParagraph.length() - 1))) {
                         shouldCapitalize = false;
                     }
                 }
@@ -73,7 +74,7 @@ public class MarkdownFormatter {
                 nextUpper = false;
             } else {
                 sb.append(c);
-                if (isSentenceEnding(c)) {
+                if (TextFormatUtils.isSentenceEnding(c)) {
                     nextUpper = true;
                 }
             }
@@ -131,9 +132,5 @@ public class MarkdownFormatter {
             currentLineLength += wordLength;
         }
         return result.toString();
-    }
-
-    private boolean isSentenceEnding(char c) {
-        return c == '.' || c == '!' || c == '?' || c == '…';
     }
 }

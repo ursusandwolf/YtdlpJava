@@ -21,7 +21,8 @@ public class KeywordHighlighter {
                     .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
                     .entrySet().stream()
                     .max(Map.Entry.comparingByValue())
-                    .get().getKey();
+                    .map(Map.Entry::getKey)
+                    .orElse(stem);
             stemToDisplayWord.put(stem, mostFrequentOriginal);
         }
         
