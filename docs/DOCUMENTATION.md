@@ -42,8 +42,8 @@ Standalone, decoupled module for subtitle processing.
 
 ### `com.ytdlpjava.processor`
 Advanced content processing logic (primarily for subtitles).
-- `SubtitleCleaner`: A facade that coordinates parsing, cleaning, analysis, and formatting. Now utilizes the `com.ytdlpjava.subtitle` module.
-- `SubtitleCleanerService`: Removal of HTML tags, speaker tags, and filler words. Uses `StringEscapeUtils` for robust unescaping.
+- `SubtitleCleaner`: A facade that implements `TextProcessor`. It coordinates analysis and highlighting, utilizing the `com.ytdlpjava.subtitle` module for parsing and assembly.
+- `SubtitleFileProcessor`: Implements `ContentProcessor`. Acts as a bridge between file IO and `SubtitleCleaner` (ISP compliance).
 - `KeywordAnalyzer`: Multi-language keyword extraction and stemming (RU/EN).
 - `MarkdownFormatter`: Markdown transformation, line wrapping, and length enforcement.
 

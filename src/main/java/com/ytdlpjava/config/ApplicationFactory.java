@@ -17,7 +17,6 @@ import com.ytdlpjava.processor.KeywordExtractor;
 import com.ytdlpjava.processor.KeywordHighlighter;
 import com.ytdlpjava.processor.MarkdownFormatter;
 import com.ytdlpjava.processor.SubtitleCleaner;
-import com.ytdlpjava.processor.SubtitleCleanerService;
 import com.ytdlpjava.subtitle.config.SubtitleConfig;
 import com.ytdlpjava.subtitle.processor.SubtitleParser;
 import com.ytdlpjava.task.AudioTask;
@@ -85,14 +84,21 @@ public class ApplicationFactory {
             stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
         }
 
-        return new SubtitleCleaner(
-                new SubtitleConfig(180, 600, 800),
+        SubtitleConfig subConfig = new SubtitleConfig(180, 600, 800);
+        List<String> fillers = DictionaryLoader.load("/dictionaries/fillers.txt");
+        
+        var lineCleaner = new com.ytdlpjava.subtitle.processor.impl.DefaultSubtitleLineCleaner(fillers);
+        var assembler = new com.ytdlpjava.subtitle.processor.SubtitleTextAssembler(subConfig, lineCleaner);
+
+        SubtitleCleaner cleaner = new SubtitleCleaner(
                 language,
                 new SubtitleParser(),
-                new SubtitleCleanerService(DictionaryLoader.load("/dictionaries/fillers.txt")),
+                assembler,
                 new KeywordExtractor(stopWords, new LemmatizerService(), language),
                 new KeywordHighlighter(),
                 new MarkdownFormatter()
         );
+        
+        return new com.ytdlpjava.processor.SubtitleFileProcessor(cleaner);
     }
 }

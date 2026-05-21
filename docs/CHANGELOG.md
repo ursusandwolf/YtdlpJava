@@ -9,16 +9,18 @@
   - Created `SubtitleTextAssembler` as the core implementation of the assembly logic.
 - **Utility Consolidation**:
   - Added `TextFormatUtils` to centralize timestamp formatting and sentence ending detection, eliminating duplication across 3 classes.
+- **Architectural Refinement (ISP)**:
+  - Split `SubtitleCleaner` into `SubtitleCleaner` (core logic implementation of `TextProcessor`) and `SubtitleFileProcessor` (file IO implementation of `ContentProcessor`).
+  - Eliminated logic duplication by ensuring `SubtitleCleaner` utilizes `SubtitleTextAssembler` from the isolated module.
 
 ### Changed
 - **Professional Lemmatization**:
   - Migrated `LemmatizerService` to **Apache Lucene** (`RussianAnalyzer` and `EnglishAnalyzer`), replacing the custom `RussianStemmer` with a more accurate dictionary-based approach.
 - **Architecture & Code Quality**:
-  - Merged duplicate `SubtitleParser` implementations into the new `subtitle` module.
   - Refactored `AbstractYoutubeService` to use a declarative "Fallback Strategy" pattern for yt-dlp resilience.
-  - Replaced manual HTML unescaping with `StringEscapeUtils.unescapeHtml4` from Apache Commons Text.
+  - Replaced manual HTML unescaping with `StringEscapeUtils.unescapeHtml4` in both the main app and the new subtitle module.
   - Fixed potential `NoSuchElementException` in `KeywordHighlighter`.
-  - Updated `SubtitleCleaner` to use `SubtitleConfig` for paragraph and timestamp thresholds.
+  - Removed redundant `SubtitleCleanerService`.
 
 ## [1.5.1] - 2026-05-20
 ### Added

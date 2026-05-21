@@ -1,6 +1,7 @@
 package com.ytdlpjava.subtitle.processor.impl;
 
 import com.ytdlpjava.subtitle.processor.SubtitleLineCleaner;
+import org.apache.commons.text.StringEscapeUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -32,7 +33,7 @@ public class DefaultSubtitleLineCleaner implements SubtitleLineCleaner {
             line = SPEAKER_TAGS.matcher(line).replaceAll("");
             line = smartCleanFillers(line);
             line = MULTIPLE_SPACES.matcher(line).replaceAll(" ");
-            line = unescapeHtml(line.trim());
+            line = StringEscapeUtils.unescapeHtml4(line.trim());
             if (!line.isEmpty()) cleaned.add(line);
         }
         return cleaned;
@@ -51,9 +52,5 @@ public class DefaultSubtitleLineCleaner implements SubtitleLineCleaner {
         result = PREPOSITION_DOT.matcher(result).replaceAll("$1$2 ");
         
         return MULTIPLE_SPACES.matcher(result).replaceAll(" ").trim();
-    }
-
-    private String unescapeHtml(String s) {
-        return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&#39;", "'");
     }
 }
