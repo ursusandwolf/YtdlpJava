@@ -31,22 +31,30 @@ Core abstractions and interfaces.
 - `FrameExtractor`: Interface for extracting frames from video files.
 - `TemporaryFileManager`: Interface for temporary file lifecycle.
 
+### `com.ytdlpjava.subtitle`
+Standalone, decoupled module for subtitle processing.
+- `api.SubtitleProcessor`: Interface for assembly pipelines.
+- `api.SubtitleLineCleaner`: Interface for text cleaning strategies.
+- `model.SubtitleBlock`: Immutable record for subtitle segments.
+- `config.SubtitleConfig`: Parameter object for processing thresholds.
+- `processor.SubtitleTextAssembler`: Core implementation of the subtitle assembly logic.
+- `processor.SubtitleParser`: Shared VTT parser.
+
 ### `com.ytdlpjava.processor`
 Advanced content processing logic (primarily for subtitles).
-- `SubtitleCleaner`: A facade that coordinates parsing, cleaning, analysis, and formatting.
-- `SubtitleParser`: VTT/SRT parsing.
-- `SubtitleCleanerService`: Removal of HTML tags, speaker tags, and filler words.
+- `SubtitleCleaner`: A facade that coordinates parsing, cleaning, analysis, and formatting. Now utilizes the `com.ytdlpjava.subtitle` module.
+- `SubtitleCleanerService`: Removal of HTML tags, speaker tags, and filler words. Uses `StringEscapeUtils` for robust unescaping.
 - `KeywordAnalyzer`: Multi-language keyword extraction and stemming (RU/EN).
 - `MarkdownFormatter`: Markdown transformation, line wrapping, and length enforcement.
 
 ### `com.ytdlpjava.infrastructure.ytdlp`
 yt-dlp adapters and output parsing.
-- `AbstractYoutubeService`: Base class with a 5-stage resilience fallback strategy:
-  1. Default with retries.
-  2. Android client.
-  3. Mweb client.
-  4. Embedded client.
-  5. Desperate mode (skip dash/hls).
+- `AbstractYoutubeService`: Base class with a 5-stage declarative "Fallback Strategy":
+  1. Default (3 retries).
+  2. Android client (2 retries).
+  3. Mweb client (2 retries).
+  4. Embedded client (2 retries).
+  5. Desperate mode (skip dash/hls, 1 retry).
 - `SubtitleDownloader`: Specialized for sidecar subtitle files.
 - `AudioDownloader`: Optimized for audio extraction (opus, mp3, m4a).
 - `VideoDownloader`: Standard video downloads.
@@ -85,8 +93,8 @@ Concrete implementations of `VideoTask`. All tasks now support `TaskResultHandle
 ### `com.ytdlpjava.util`
 - `DictionaryLoader`: Resource-based loader for stop-words and fillers.
 - `FilenameGenerator`: Date-aware file naming logic.
-- `LemmatizerService`: Multi-language stemming service (supports Russian Porter stemmer and simplified English rules).
-- `RussianStemmer`: Implementation of the Porter stemming algorithm for Russian.
+- `LemmatizerService`: Multi-language lemmatization using **Apache Lucene** (Russian and English analyzers).
+- `TextFormatUtils`: Shared utilities for formatting and text analysis.
 
 ## Usage
 Run the application with a YouTube URL as the first argument, or provide it via interactive prompt.

@@ -1,5 +1,25 @@
 # Changelog - YtdlpJava
 
+## [1.6.0] - 2026-05-21
+### Added
+- **Decoupled Subtitle Module**:
+  - Refactored subtitle processing into a standalone `com.ytdlpjava.subtitle` package with no dependencies on the main project domain.
+  - Introduced `SubtitleConfig` record to group processing parameters (gaps, paragraph limits).
+  - Defined `SubtitleProcessor` and `SubtitleLineCleaner` interfaces for a pluggable processing pipeline.
+  - Created `SubtitleTextAssembler` as the core implementation of the assembly logic.
+- **Utility Consolidation**:
+  - Added `TextFormatUtils` to centralize timestamp formatting and sentence ending detection, eliminating duplication across 3 classes.
+
+### Changed
+- **Professional Lemmatization**:
+  - Migrated `LemmatizerService` to **Apache Lucene** (`RussianAnalyzer` and `EnglishAnalyzer`), replacing the custom `RussianStemmer` with a more accurate dictionary-based approach.
+- **Architecture & Code Quality**:
+  - Merged duplicate `SubtitleParser` implementations into the new `subtitle` module.
+  - Refactored `AbstractYoutubeService` to use a declarative "Fallback Strategy" pattern for yt-dlp resilience.
+  - Replaced manual HTML unescaping with `StringEscapeUtils.unescapeHtml4` from Apache Commons Text.
+  - Fixed potential `NoSuchElementException` in `KeywordHighlighter`.
+  - Updated `SubtitleCleaner` to use `SubtitleConfig` for paragraph and timestamp thresholds.
+
 ## [1.5.1] - 2026-05-20
 ### Added
 - Added `cli`, `config`, and `infrastructure` packages to separate application wiring from runtime adapters.

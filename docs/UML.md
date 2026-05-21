@@ -45,9 +45,17 @@
                    |
                    v
           +-----------------------+
+          | .subtitle             |
+          | Parser | Assembler    |
+          | Config | Block        |
+          +-----------------------+
+                   |
+                   v
+          +-----------------------+
           | infrastructure        |
           | ytdlp / ffmpeg / fs   |
           +-----------------------+
+
 
         ## Strategy Pattern for Tasks
         The `VideoTask` interface allows `YtdlManager` to process videos in different ways. All tasks now utilize `TaskResultHandler` to delegate output processing (e.g., to the filesystem via `FileResultHandler` or potentially to Telegram).
