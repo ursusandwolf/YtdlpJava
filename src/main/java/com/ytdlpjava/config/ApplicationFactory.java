@@ -76,12 +76,24 @@ public class ApplicationFactory {
     }
 
     private ContentProcessor createSubtitleProcessor(String lang) {
-        LemmatizerService.Language language = "ru".equals(lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
+        LemmatizerService.Language language = switch (lang.toLowerCase()) {
+            case "ru" -> LemmatizerService.Language.RU;
+            case "uk" -> LemmatizerService.Language.UK;
+            case "de" -> LemmatizerService.Language.DE;
+            case "es" -> LemmatizerService.Language.ES;
+            case "fr" -> LemmatizerService.Language.FR;
+            case "it" -> LemmatizerService.Language.IT;
+            default -> LemmatizerService.Language.EN;
+        };
 
         List<String> stopWords = new ArrayList<>();
+        // Always load basic English and Russian stop words as they are common
         stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_ru.txt"));
-        if ("en".equals(lang)) {
-            stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
+        stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_en.txt"));
+        
+        // Load language-specific stop words if it's not RU or EN (already loaded)
+        if (!"ru".equals(lang) && !"en".equals(lang)) {
+            stopWords.addAll(DictionaryLoader.load("/dictionaries/stop_words_" + lang.toLowerCase() + ".txt"));
         }
 
         SubtitleConfig subConfig = new SubtitleConfig(180, 600, 800);

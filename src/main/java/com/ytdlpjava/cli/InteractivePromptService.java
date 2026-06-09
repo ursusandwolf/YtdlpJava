@@ -39,13 +39,19 @@ public class InteractivePromptService {
                 System.out.println("1. Английский (en)");
                 System.out.println("2. Русский (ru)");
                 System.out.println("3. Украинский (uk)");
-                System.out.print("Введите номер или код языка [en]: ");
+                System.out.println("4. Немецкий (de)");
+                System.out.println("5. Испанский (es)");
+                System.out.print("Введите номер или код языка (например, fr, it) [en]: ");
                 String inputLang = scanner.nextLine().trim();
                 if (!inputLang.isEmpty()) {
                     config.setLang(switch (inputLang) {
                         case "1" -> "en";
                         case "2" -> "ru";
                         case "3" -> "uk";
+                        case "4" -> "de";
+                        case "5" -> "es";
+                        case "6", "fr" -> "fr";
+                        case "7", "it" -> "it";
                         default -> inputLang;
                     });
                 }
