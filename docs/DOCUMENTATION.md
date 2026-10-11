@@ -1,102 +1,98 @@
-# Documentation - YtdlpJava
+# Архитектура YtdlpJava
 
-## Overview
-YtdlpJava is a specialized tool for interacting with YouTube content using `yt-dlp`. It follows a layered architecture to provide clean separation between downloading, processing, and UI logic.
+Описание соответствует рабочей ветке `dev` с исправлениями поверх `16f1c46`.
+Запуск: [README](../README.md). Открытые проблемы: [анализ кода](coderev.md).
 
-## Architecture & Packages
+## Пакеты
 
-### `com.ytdlpjava.cli`
-Command-line entrypoint and interactive prompt.
-- `Main`: CLI parsing and application startup.
-- `InteractivePromptService`: Terminal-based interactive wizard.
-- `com.ytdlpjava.Main`: Backward-compatible delegating entrypoint.
+| Пакет `com.ytdlpjava.*` | Ответственность |
+|---|---|
+| `cli` | JCommander, запуск и интерактивный мастер |
+| `config` | `AppConfig` и сборка зависимостей в `ApplicationFactory` |
+| `core` | `YtdlManager`, внешние процессы и исключения |
+| `model` | Порты загрузки, метаданных, задач, текста и временных файлов |
+| `infrastructure.ytdlp` | Загрузчики и разбор вывода yt-dlp |
+| `infrastructure.ffmpeg` | Извлечение кадров |
+| `infrastructure.filesystem` | Жизненный цикл временных файлов |
+| `task` | Пять реализаций `VideoTask` и обработчики результатов |
+| `processor` | Файловая обработка субтитров, ключевые слова, Markdown |
+| `subtitle` | Парсинг VTT, очистка строк и сборка абзацев |
+| `util` | Имена, словари, анализаторы Lucene, текстовые утилиты |
 
-### `com.ytdlpjava.config`
-Composition root and runtime configuration.
-- `AppConfig`: Parsed CLI/interactive configuration.
-- `ApplicationFactory`: Wires application ports to infrastructure implementations.
+`com.ytdlpjava.Main` делегирует запуск в `cli.Main`.
+`Downloader` объединяет узкие порты, включая `MediaDownloader`, `TitleProvider`,
+`DurationProvider`, `PlaylistProvider` и `StreamUrlProvider`.
+Задачи получают нужные порты через конструкторы.
 
-### `com.ytdlpjava.core`
-The heartbeat of the application.
-- `YtdlManager`: Orchestrates the download process, handles playlists, and executes tasks.
-- `ProcessExecutor`: Manages external command execution with real-time logging and timeouts.
+## Запуск и результаты
 
-### `com.ytdlpjava.model`
-Core abstractions and interfaces.
-- `Downloader`: Interface for yt-dlp operations.
-- Narrow ports: `MediaDownloader`, `TitleProvider`, `DurationProvider`, `PlaylistProvider`, `StreamUrlProvider`.
-- `VideoTask`: Strategy interface for different processing pipelines.
-- `ContentProcessor` / `TextProcessor`: Interfaces for post-download data transformation.
-- `FilenameProvider`: Interface for name generation.
-- `FrameExtractor`: Interface for extracting frames from video files.
-- `TemporaryFileManager`: Interface for temporary file lifecycle.
+1. `cli.Main` разбирает и проверяет параметры; при отсутствии URL запускает мастер.
+2. `AppConfig.configureOutputDir()` выбирает каталог для типа задачи.
+3. `ApplicationFactory` создаёт загрузчик, задачу и `FileResultHandler`.
+4. `YtdlManager` получает список URL и последовательно вызывает `VideoTask.execute`.
+5. Задача создаёт результат, вызывает `ResultDispatcher` и очищает временные файлы.
 
-### `com.ytdlpjava.subtitle`
-Standalone, decoupled module for subtitle processing.
-- `api.SubtitleProcessor`: Interface for assembly pipelines.
-- `api.SubtitleLineCleaner`: Interface for text cleaning strategies.
-- `model.SubtitleBlock`: Immutable record for subtitle segments.
-- `config.SubtitleConfig`: Parameter object for processing thresholds.
-- `processor.SubtitleTextAssembler`: Core implementation of the subtitle assembly logic.
-- `processor.SubtitleParser`: Shared VTT parser.
+Задачи передают эффективный каталог плейлиста в `TaskResultHandler.handle(title, file, outputDir)`.
+Двухаргументный метод сохранён для совместимости. Обработчики обязаны оставлять исходный
+файл доступным до завершения всех вызовов. `FileResultHandler` копирует результат,
+резервируя имя через `CREATE_NEW`; коллизии получают суффикс ` (1)`, ` (2)` и далее.
+`ResultDispatcher` пытается вызвать остальные обработчики после ошибки одного из них
+и затем сообщает общий сбой. Прерывание останавливает обработку сразу.
+Задача удаляет временный источник в `finally` после завершения обработчиков.
+CLI подключает только файловый обработчик. Telegram требует подключения в коде;
+его адаптер проверяет `SendResponse.isOk()` и сообщает об отказе API.
 
-### `com.ytdlpjava.processor`
-Advanced content processing logic (primarily for subtitles).
-- `SubtitleCleaner`: A facade that implements `TextProcessor`. It coordinates analysis and highlighting, utilizing the `com.ytdlpjava.subtitle` module for parsing and assembly.
-- `SubtitleFileProcessor`: Implements `ContentProcessor`. Acts as a bridge between file IO and `SubtitleCleaner` (ISP compliance).
-- `KeywordAnalyzer`: Multi-language keyword extraction and stemming (RU/EN).
-- `MarkdownFormatter`: Markdown transformation, line wrapping, and length enforcement.
+`YtdlManager` собирает ошибки элементов и после обработки плейлиста выбрасывает
+`YtdlManagerException`, если были сбои или список пуст. CLI продолжает остальные URL
+и возвращает `1` при любой ошибке; неправильные аргументы дают `2`, успех — `0`.
 
-### `com.ytdlpjava.infrastructure.ytdlp`
-yt-dlp adapters and output parsing.
-- `AbstractYoutubeService`: Base class with a 5-stage declarative "Fallback Strategy":
-  1. Default (3 retries).
-  2. Android client (2 retries).
-  3. Mweb client (2 retries).
-  4. Embedded client (2 retries).
-  5. Desperate mode (skip dash/hls, 1 retry).
-- `SubtitleDownloader`: Specialized for sidecar subtitle files.
-- `AudioDownloader`: Optimized for audio extraction (opus, mp3, m4a).
-- `VideoDownloader`: Standard video downloads.
-- `MetadataDownloader`: JSON metadata extraction.
-- `YtdlpOutputParser`: Parses yt-dlp output for downloaded file paths.
+## Субтитры
 
-### `com.ytdlpjava.infrastructure.ffmpeg`
-- `FfmpegFrameExtractor`: ffmpeg-backed implementation of `FrameExtractor`.
+```text
+SubtitleDownloader → VTT → SubtitleFileProcessor → SubtitleCleaner
+  → SubtitleParser → SubtitleTextAssembler → MarkdownFormatter
+  → KeywordExtractor → KeywordHighlighter → временный .md → FileResultHandler
+```
 
-### `com.ytdlpjava.infrastructure.filesystem`
-- `FilesystemTemporaryFileManager`: filesystem-backed temporary file lifecycle.
+`SubtitleCleaner` реализует `TextProcessor`, а `SubtitleFileProcessor` — `ContentProcessor`.
+Единственный `SubtitleParser` расположен в `subtitle.processor`.
+`SubtitleLineCleaner` находится в `subtitle.processor`, а `SubtitleProcessor` — в `subtitle.api`.
 
-## Technical Debt & Road Map
-Updated: 2026-05-19
-- **Dependency Injection**: Plan to move `SubtitleCleaner` to full DI.
-- **Optimization**: (Completed) Pre-compile regex in `SubtitleCleanerService`.
-- **Modularity**: (Completed) Split analysis and highlighting in `KeywordAnalyzer`.
-- **Pending**:
-  - Implement Dependency Injection for `SubtitleCleaner`.
-  - Migrate `LemmatizerService` to Lucene.
-  - Decouple formatting from `SubtitleCleaner` into `MarkdownFormatter`.
-  - Add integration tests for `yt-dlp`.
-  - Unit tests for `ProcessExecutor`.
+Приложение создаёт `SubtitleConfig(180, 600, 800)`: интервал таймкодов 180 секунд,
+мягкий порог абзаца 600 символов. `paragraphHardLimit` ограничивает текстовые элементы
+сборщика 800 символами до добавления Markdown/подсветки. Разбиение выполняется по пробелу,
+а длинные слова — по границе символов без разрыва UTF-16 surrogate pair.
+Отдельный `defaultSettings()` задаёт 10 секунд.
+`MarkdownFormatter` использует собственные значения 300 для разбиения предложений
+и 95 для переноса строк.
 
-### `com.ytdlpjava.task`
-Concrete implementations of `VideoTask`. All tasks now support `TaskResultHandler` for flexible output routing.
-- `TaskResultHandler`: Interface for handling processing results (e.g., saving to file, sending to Telegram).
-- `FileResultHandler`: Default implementation that moves result files to the final output directory.
-- `TelegramResultHandler`: New implementation for sending results to Telegram bots via `java-telegram-bot-api`.
-- `SubtitleTask`: Pipeline for subtitle processing. Now uses temporary files for intermediate Markdown result.
-- `AudioTask`: Pipeline for audio extraction.
-- `ScreenshotTask`: Captures periodic screenshots. Handlers are invoked in real-time for each captured frame.
-- `MetadataTask`: Saves descriptions and tags as JSON.
-- `VideoDownloadTask`: Handles standard video file downloads.
+`LemmatizerService` выбирает анализаторы Lucene для RU, EN, DE, ES, FR, IT, UK.
+Русский и английский анализаторы выполняют стемминг, а не словарную лемматизацию;
+украинский использует `UkrainianMorfologikAnalyzer`.
+Загружаются общие RU/EN stop-word словари и дополнительный словарь выбранного языка.
+`ApplicationFactory` владеет лениво созданным `LemmatizerService` и закрывает все
+анализаторы после обработки всей партии URL. CLI использует try-with-resources,
+поэтому закрытие происходит и при ошибке сборки зависимостей или обработки.
 
-### `com.ytdlpjava.util`
-- `DictionaryLoader`: Resource-based loader for stop-words and fillers.
-- `FilenameGenerator`: Date-aware file naming logic.
-- `LemmatizerService`: Multi-language lemmatization using **Apache Lucene** (Russian and English analyzers).
-- `TextFormatUtils`: Shared utilities for formatting and text analysis.
+`subtitle` — пакет единого Maven-проекта, не отдельный артефакт.
+Он зависит от `util.TextFormatUtils`, Lombok и Commons Text.
 
-## Usage
-Run the application with a YouTube URL as the first argument, or provide it via interactive prompt.
-Use `-t` to specify the task type (`sub`, `audio`, `video`, `screenshot`, `metadata`).
-Subtitles are saved to `txt/`, other assets to `output/`.
+## Внешние процессы
+
+`AbstractYoutubeService` добавляет `--js-runtimes node` и применяет стратегии
+Default, Android, Mweb, Embedded, Desperate с настройкой попыток 3/2/2/2/1.
+Реальные повторы зависят от классификации ошибки; доступность контента не гарантируется.
+
+`ProcessExecutor` объединяет stdout/stderr, логирует строки и накапливает вывод.
+Вывод читается в отдельном virtual thread, а единый таймаут по умолчанию 30 минут
+охватывает ожидание процесса и завершение чтения. При таймауте или прерывании
+завершаются процесс и доступные через ProcessHandle дочерние процессы.
+`YtdlpOutputParser` выделяет пути из вывода; `SubtitleDownloader` ищет `.vtt`
+по точному префиксу имени и языка. Все стратегии запрашивают только VTT.
+Если совместимого файла нет, возвращается явная ошибка; JSON3/SRV не парсятся.
+
+## Проверки
+
+Тесты в `src/test/java` покрывают конфигурацию, именование, субтитры/ключевые слова,
+менеджер, разбор вывода, временные файлы и Telegram-адаптер.
+Результаты и недостающие проверки: [coderev.md](coderev.md).

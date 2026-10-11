@@ -2,6 +2,8 @@ package com.ytdlpjava.task;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.SendDocument;
+import com.pengrad.telegrambot.response.SendResponse;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +29,10 @@ public class TelegramResultHandler implements TaskResultHandler {
         SendDocument request = new SendDocument(chatId, resultFile.toFile())
                 .caption("Result for: " + title);
         
-        bot.execute(request);
+        SendResponse response = bot.execute(request);
+        if (response == null || !response.isOk()) {
+            throw new IOException(response == null ? "Telegram returned no response"
+                    : "Telegram rejected the document: " + response.errorCode() + " " + response.description());
+        }
     }
 }

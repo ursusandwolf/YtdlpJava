@@ -6,6 +6,9 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.nio.file.Path;
 
 @Getter
 @Setter
@@ -35,6 +38,31 @@ public class AppConfig {
 
     @Parameter(names = {"-h", "--help"}, help = true, description = "Показать справку")
     private boolean help;
+
+    public void validate() {
+        type = normalize(type, "Task type");
+        audioFormat = normalize(audioFormat, "Audio format");
+        lang = normalize(lang, "Subtitle language");
+        if (!Set.of("sub", "audio", "video", "screenshot", "metadata").contains(type)) {
+            throw new IllegalArgumentException("Unknown task type: " + type);
+        }
+        if (!Set.of("opus", "mp3", "m4a").contains(audioFormat)) {
+            throw new IllegalArgumentException("Unsupported audio format: " + audioFormat);
+        }
+        if (audioQuality == null || !audioQuality.matches("[0-9]")) {
+            throw new IllegalArgumentException("Audio quality must be an integer from 0 to 9");
+        }
+        if (interval <= 0) throw new IllegalArgumentException("Screenshot interval must be positive");
+        if (outputDir == null || outputDir.isBlank()) {
+            throw new IllegalArgumentException("Output directory must not be blank");
+        }
+        Path.of(outputDir);
+    }
+
+    private static String normalize(String value, String label) {
+        if (value == null || value.isBlank()) throw new IllegalArgumentException(label + " must not be blank");
+        return value.trim().toLowerCase(Locale.ROOT);
+    }
 
     public void configureOutputDir() {
         if ("output".equals(this.outputDir)) {

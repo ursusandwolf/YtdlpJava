@@ -1,39 +1,52 @@
-# Project Context - YtdlpJava
+# Состояние проекта и подготовка слияния
 
-## Current State
-The project is a Java-based wrapper around `yt-dlp` for downloading and processing YouTube content (subtitles, audio, video, screenshots). It follows a clean architecture with interfaces and strategy pattern for different tasks.
+Обновлено: 2026-10-11. Исправления в локальной ветке `dev` поверх `16f1c46`.
 
-## Recent Changes (2026-05-21)
-- **Decoupled Subtitle Module (v1.6.0)**:
-  - Refactored subtitle processing into a standalone `com.ytdlpjava.subtitle` package.
-  - Introduced `SubtitleConfig` for better parameterization and `SubtitleProcessor`/`SubtitleLineCleaner` interfaces for extensibility.
-  - Merged duplicate parser logic and improved modularity.
-- **Architectural Cleanup & Code Review Fixes**:
-  - Migrated `LemmatizerService` to **Apache Lucene**, eliminating the custom `RussianStemmer` while increasing accuracy.
-  - Consolidated shared text utilities into `TextFormatUtils`.
-  - Replaced manual HTML unescaping with `StringEscapeUtils.unescapeHtml4`.
-  - Refactored `AbstractYoutubeService` to use a declarative "Fallback Strategy" pattern.
-- **ISP & Logic Refinement**:
-  - Split `SubtitleCleaner` into `SubtitleCleaner` (TextProcessor) and `SubtitleFileProcessor` (ContentProcessor) to satisfy ISP.
-  - Eliminated duplicate assembly logic by ensuring `SubtitleCleaner` uses the `subtitle` module.
+## Текущее состояние
 
-## Recent Changes (2026-05-19)
-- **Universal Task Result Handling (v1.5.0)**:
-  - Implemented `TaskResultHandler` and `FileResultHandler` to decouple IO from processing tasks.
-  - Generalized all `VideoTask` implementations (`Subtitle`, `Audio`, `Video`, `Screenshot`, `Metadata`) to support multiple result handlers.
+YtdlpJava — единый Maven-проект на Java 21 с пятью задачами CLI:
+субтитры, аудио, видео, скриншоты и метаданные. Конфигурация и сборка зависимостей
+отделены от задач и адаптеров yt-dlp/ffmpeg. Субтитры обрабатываются в Markdown
+с анализом ключевых слов для EN/RU/UK/DE/ES/FR/IT.
 
-## Pending Items
-- [x] Comprehensive Code Review (completed 2026-05-19).
-- [x] Implement Dependency Injection (or Builder pattern) for `SubtitleCleaner`.
-- [x] Migrate `LemmatizerService` to use Lucene instead of custom `RussianStemmer`.
-- [x] Decouple formatting logic from `SubtitleCleaner` into `MarkdownFormatter`.
-- [x] Merge duplicate `SubtitleParser` implementations.
-- [x] Split `KeywordHighlighter` into highlighting and summary generation.
-- [ ] Improve `ProcessExecutor` path extraction (use `--print` or JSON metadata).
-- [ ] Add integration tests that use a mock `yt-dlp` or controlled environment.
-- [ ] Implement unit tests for `ProcessExecutor`.
+В `main` только README с названием. Слияние `dev` принесёт всё приложение,
+а не небольшой набор изменений. Артефакт в POM — `1.0-SNAPSHOT`;
+версии 1.x в changelog — исторические обозначения, Git-тегов нет.
 
-## Historical Highlights
-- **Universal Task Result Handling (v1.5.0)**: Decoupled output processing (Files, Telegram) from task logic.
-- **Advanced yt-dlp Resilience (v1.3.8)**: 5-stage "Deep Fallback" mechanism and Node.js runtime support.
-- **Multi-Package Refactoring (2026-05-08)**: Clean architecture layout with logical sub-packages.
+## Навигация
+
+- [Запуск и параметры](../README.md)
+- [Архитектура](DOCUMENTATION.md)
+- [Диаграммы](UML.md)
+- [Анализ кода, риски и проверки](coderev.md)
+- [Единая история изменений](../CHANGELOG.md)
+- [Текст коммита, PR и порядок слияния](MERGE.md)
+
+## Что уже реализовано
+
+- Разделение CLI, конфигурации, портов, задач и инфраструктуры.
+- Constructor injection для обработки субтитров.
+- Один VTT-парсер; общие текстовые утилиты и Commons Text.
+- Анализаторы Lucene и словари для семи языков.
+- Файловый обработчик и программно подключаемый Telegram-адаптер.
+- Пять резервных стратегий обращения к yt-dlp.
+
+## Подготовка к слиянию
+
+- [x] Сверить README с AppConfig, CLI и POM.
+- [x] Обновить архитектуру, диаграммы и описание пакета субтитров.
+- [x] Объединить changelog и отделить исторический review от текущих проблем.
+- [x] Реализовать все десять пунктов плана: таймаут, каталог плейлиста, статус ошибок,
+  VTT fallback, валидация CLI, обработчики результата, Telegram-ответы,
+  коллизии имён, предел абзацев и закрытие анализаторов.
+- [x] Добавить регрессионные проверки: `mvn clean verify`, 58 успешных тестов,
+  smoke-проверки CLI и проверка ссылок документации.
+- [x] Оформить README для GitHub, добавить UML классов и последовательностей.
+- [x] Проверить origin/dev и origin/main; подготовить текст коммита и описание PR.
+- [ ] Проверить реальную загрузку yt-dlp/ffmpeg в контролируемой среде.
+- [ ] Определить лицензию и добавить её файл, если проект предполагает лицензирование.
+- [ ] Определить выпускную версию и формат распространения (classpath или исполняемый JAR).
+- [ ] Перед фактическим слиянием повторно сверить актуальную базу и необходимые проверки.
+
+Код и документация подготовлены локально в `dev`. Слияние, публикация и создание релиза
+в рамках этой работы не выполнялись.

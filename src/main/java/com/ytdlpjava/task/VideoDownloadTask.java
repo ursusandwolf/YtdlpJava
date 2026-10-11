@@ -24,9 +24,7 @@ public class VideoDownloadTask implements VideoTask {
         Path downloadedFile = downloader.download(url, basename);
 
         try {
-            for (TaskResultHandler handler : resultHandlers) {
-                handler.handle(title, downloadedFile);
-            }
+            ResultDispatcher.dispatch(resultHandlers, title, downloadedFile, outputDir);
         } finally {
             temporaryFileManager.deleteIfExists(downloadedFile);
         }

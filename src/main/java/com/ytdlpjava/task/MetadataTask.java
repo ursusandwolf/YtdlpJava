@@ -24,9 +24,7 @@ public class MetadataTask implements VideoTask {
         Path result = downloader.download(url, basename);
         
         try {
-            for (TaskResultHandler handler : resultHandlers) {
-                handler.handle(title, result);
-            }
+            ResultDispatcher.dispatch(resultHandlers, title, result, outputDir);
         } finally {
             temporaryFileManager.deleteIfExists(result);
         }

@@ -1,6 +1,82 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Единая история изменений YtdlpJava. Исторические номера ниже сохранены из прежних
+документов; они не обозначают опубликованные Git-теги. Версия Maven: `1.0-SNAPSHOT`.
+Старый дополнительный changelog сохранён в [архиве](docs/archive/changelog-legacy.md);
+его неоднозначные записи не переобозначены как новые релизы.
+
+## [Unreleased]
+
+### Added
+- Поддержка анализа субтитров DE/ES/FR/IT/UK, дополнительные Lucene Analyzer
+  и stop-word словари; расширен интерактивный выбор языка (коммит `16f1c46`, 2026-06-10).
+
+### Documentation
+- Инструкции classpath вместо неработающего `java -jar`, все типы задач и каталоги.
+- Актуальные архитектура, Mermaid-диаграммы и описание пакета субтитров.
+- Единый changelog, архив прежних документов и анализ рисков перед слиянием.
+- README для GitHub: навигация, таблицы возможностей и параметров, проверка окружения,
+  быстрый старт для Windows/Linux/macOS, примеры задач и схема обработки.
+- UML классов и sequence-диаграммы: плейлисты, цепочка обработчиков и таймаут процессов.
+- Подготовка dev → main: тексты коммита и PR, проверенное состояние веток
+  и порядок публикации в [docs/MERGE.md](docs/MERGE.md).
+
+### Fixed
+
+- Исправлен таймаут внешних процессов: параллельное чтение вывода и единый deadline;
+  при таймауте/прерывании завершаются процесс и доступные дочерние процессы.
+- Результаты сохраняются в фактический каталог плейлиста.
+- Ошибки элементов собираются в сводку; CLI продолжает остальные URL,
+  но возвращает ненулевой статус при любом сбое или пустом списке видео.
+- Все резервные попытки загрузки субтитров используют VTT; отсутствие совместимого
+  файла даёт явную ошибку. Поиск файла учитывает точное имя и выбранный язык.
+- Неверные интервал кадров, тип задачи, формат и качество аудио отвергаются
+  до запуска внешних процессов; в задаче скриншотов добавлена защитная проверка.
+- Обработчики результата получают доступ к исходному файлу до завершения всей цепочки.
+  Отказ одного обработчика не мешает остальным; временные файлы очищаются после вызовов.
+- Telegram-адаптер проверяет успех API и сообщает об отрицательном/отсутствующем ответе.
+- Совпадающие имена не перезаписывают результаты: свободное имя резервируется
+  атомарно через CREATE_NEW, добавляются суффиксы ` (1)`, ` (2)` и далее.
+- Сборщик субтитров применяет жёсткий предел абзацев, сохраняет содержимое
+  и не разрывает UTF-16 surrogate pair; проверяет параметры конфигурации.
+- Анализаторы Lucene закрываются после всей партии URL, включая ошибочный путь.
+
+### Changed
+
+- Файловый обработчик копирует результат вместо перемещения; источником владеет задача.
+- Добавлен ResultDispatcher и совместимый трёхаргументный метод обработчика с каталогом результата.
+- CLI возвращает `0` при успехе, `1` при ошибке обработки, `2` при неверных аргументах.
+- ApplicationFactory и LemmatizerService реализуют AutoCloseable; фабрика создаёт сервис лениво.
+
+### Tests
+
+- Добавлены регрессионные проверки всех десяти находок, включая реальные дочерние
+  Java-процессы, параллельные коллизии файлов и mock-ответы Telegram.
+- `mvn clean verify`: 58 тестов, 0 ошибок/падений/пропусков; BUILD SUCCESS.
+- Smoke-проверки: справка обеих точек входа возвращает 0, неверный интервал — 2.
+- Результат полного запуска и оставшиеся ограничения: [анализ кода](docs/coderev.md).
+
+## [1.6.0] - 2026-05-21
+### Added
+- **Decoupled Subtitle Module**:
+  - Refactored subtitle processing into a `com.ytdlpjava.subtitle` package; it still depends on `util.TextFormatUtils`, Lombok and Commons Text and is not a separate Maven module.
+  - Introduced `SubtitleConfig` record to group processing parameters (gaps, paragraph limits).
+  - Defined `SubtitleProcessor` and `SubtitleLineCleaner` interfaces for a pluggable processing pipeline.
+  - Created `SubtitleTextAssembler` as the core implementation of the assembly logic.
+- **Utility Consolidation**:
+  - Added `TextFormatUtils` to centralize timestamp formatting and sentence ending detection, eliminating duplication across 3 classes.
+- **Architectural Refinement (ISP)**:
+  - Split `SubtitleCleaner` into `SubtitleCleaner` (core logic implementation of `TextProcessor`) and `SubtitleFileProcessor` (file IO implementation of `ContentProcessor`).
+  - Eliminated logic duplication by ensuring `SubtitleCleaner` utilizes `SubtitleTextAssembler` from the isolated module.
+
+### Changed
+- **Lucene Text Analysis**:
+  - Migrated `LemmatizerService` to **Apache Lucene** (`RussianAnalyzer` and `EnglishAnalyzer`), replacing the custom `RussianStemmer` with Lucene stemming analyzers (not dictionary-based Russian lemmatization).
+- **Architecture & Code Quality**:
+  - Refactored `AbstractYoutubeService` to use a declarative "Fallback Strategy" pattern for yt-dlp resilience.
+  - Replaced manual HTML unescaping with `StringEscapeUtils.unescapeHtml4` in both the main app and the new subtitle module.
+  - Fixed potential `NoSuchElementException` in `KeywordHighlighter`.
+  - Removed redundant `SubtitleCleanerService`.
 
 ## [1.5.1] - 2026-05-20
 
@@ -22,6 +98,31 @@ All notable changes to this project will be documented in this file.
   - Centralized CLI parameter parsing in `AppConfig` and simplified `cli.Main`.
 - **Documentation Refresh**:
   - Updated package-level architecture documentation and UML to match the new layered layout.
+
+## [1.5.0] - 2026-05-19
+### Added
+- **Universal Task Result Handling**:
+  - Implemented `TaskResultHandler` interface to decouple output processing (files, notifications, etc.) from task logic.
+  - Added `FileResultHandler` for standard filesystem output.
+  - Generalized all tasks (`SubtitleTask`, `AudioTask`, `VideoDownloadTask`, `ScreenshotTask`, `MetadataTask`) to support multiple result handlers.
+- **Enhanced Test Reliability**:
+  - Fixed `SubtitleCleanerTest.testKeywordExclusion` by using more unique terms to avoid overlap with the extensive stop-word dictionary.
+
+### Changed
+- Refactored `SubtitleTask` to use temporary files for intermediate processing before handing off to result handlers.
+- Updated `Main.java` to inject `FileResultHandler` into all task types.
+
+## [1.4.0] - 2026-05-13
+### Changed
+- **Architectural Cleanup**:
+  - Removed all Fully Qualified Names (FQNs) in favor of explicit imports across the codebase.
+  - Refactored `Main.java` to extract service initialization into specialized factory methods.
+  - Enforced Dependency Injection (DI) in `SubtitleCleaner` using Lombok `@RequiredArgsConstructor`.
+  - Optimized Regex performance by moving patterns to static constants in `KeywordExtractor` and `SubtitleCleanerService`.
+  - Refined `ProcessExecutor` path extraction logic to reduce unnecessary object allocations.
+- **Testing**:
+  - Updated `SubtitleCleanerTest` and `KeywordAnalyzerTest` to support new constructor-based dependency injection.
+  - Fixed test failures caused by incorrect stop-word filtering in unit tests.
 
 ## [1.3.13] - 2026-05-10
 
@@ -68,7 +169,6 @@ All notable changes to this project will be documented in this file.
   - Added `--skip-unavailable-fragments` to handle the transition period between live stream end and VOD availability.
 - **Regression Fix**: Restored VTT as the primary subtitle format for standard videos to ensure compatibility with the existing `SubtitleParser`.
 
-## [1.3.3] - 2026-05-10
 ## [1.3.2] - 2026-05-08
 
 ### Added

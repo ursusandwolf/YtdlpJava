@@ -26,6 +26,7 @@ public class ScreenshotTask implements VideoTask {
 
     @Override
     public void execute(String url, Path outputDir) throws Exception {
+        if (intervalSeconds <= 0) throw new IllegalArgumentException("Screenshot interval must be positive");
         String title = titleProvider.getTitle(url);
         String basename = filenameProvider.buildFilename(title, 60);
 
@@ -43,9 +44,7 @@ public class ScreenshotTask implements VideoTask {
 
                 try {
                     frameExtractor.extractFrame(videoFile, ts, tempScreenshot);
-                    for (TaskResultHandler handler : resultHandlers) {
-                        handler.handle(title + " (screenshot " + ts + "s)", tempScreenshot);
-                    }
+                    ResultDispatcher.dispatch(resultHandlers, title + " (screenshot " + ts + "s)", tempScreenshot, outputDir);
                 } finally {
                     temporaryFileManager.deleteIfExists(tempScreenshot);
                 }

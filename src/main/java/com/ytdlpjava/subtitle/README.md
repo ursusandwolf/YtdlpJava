@@ -1,13 +1,27 @@
-# Subtitle Module (Decoupled)
+# Пакет обработки субтитров
 
-The subtitle processing logic has been refactored into a standalone module (`com.ytdlpjava.subtitle.*`).
+`com.ytdlpjava.subtitle` содержит обработку VTT внутри единого Maven-проекта.
+Отдельного `pom.xml` и публикуемого артефакта нет.
 
-- **Decoupling**: No dependencies on `com.ytdlpjava.model` or other domain-specific processors.
-- **Modularity**: Logic is split into `api` (interfaces), `model` (simple records), `config` (parameter objects), and `processor` (implementations).
-- **Extensibility**: Can be easily ported to other projects by copying the `subtitle` package.
+| Компонент | Назначение |
+|---|---|
+| `api.SubtitleProcessor` | Сборка элементов текста из блоков |
+| `model.SubtitleBlock` | Таймкод и текст сегмента |
+| `config.SubtitleConfig` | Интервал таймкодов и пороги абзацев |
+| `processor.SubtitleParser` | Разбор VTT |
+| `processor.SubtitleLineCleaner` | Контракт очистки строк |
+| `processor.impl.DefaultSubtitleLineCleaner` | Очистка сущностей, тегов и слов-паразитов |
+| `processor.SubtitleTextAssembler` | Сборка абзацев и заголовков таймкодов |
 
-## Components
-- `SubtitleBlock`: Immutable record representing a subtitle segment.
-- `SubtitleConfig`: Configuration parameters for processing.
-- `SubtitleProcessor`: Interface for custom assembly pipelines.
-- `SubtitleLineCleaner`: Interface for text cleaning strategies.
+Пакет не зависит от `model` и `processor` основного приложения, но использует
+`com.ytdlpjava.util.TextFormatUtils`, Lombok и Apache Commons Text.
+Для переноса нужны также утилита и зависимости.
+
+`SubtitleConfig.defaultSettings()` задаёт `(10, 600, 800)`. CLI создаёт
+`(180, 600, 800)` в `ApplicationFactory`. `paragraphHardLimit` ограничивает длину
+абзацев на этапе сборки; при необходимости текст делится по пробелу или внутри
+длинного слова без разрыва UTF-16 surrogate pair. Параметры проверяются при создании.
+Markdown и ключевые слова добавляются после сборки элементов текста и могут
+увеличить длину строки за счёт разметки.
+
+См. [архитектуру проекта](../../../../../../docs/DOCUMENTATION.md).

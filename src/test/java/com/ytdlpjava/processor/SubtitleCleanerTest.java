@@ -6,6 +6,7 @@ import com.ytdlpjava.subtitle.processor.SubtitleParser;
 import com.ytdlpjava.util.DictionaryLoader;
 import com.ytdlpjava.util.LemmatizerService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +17,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SubtitleCleanerTest {
+    private final List<LemmatizerService> services = new ArrayList<>();
+
+    @AfterEach
+    void closeAnalyzers() {
+        services.forEach(LemmatizerService::close);
+    }
 
     private SubtitleCleaner createTextCleaner(int gap, String lang) {
         LemmatizerService.Language language = "ru".equals(lang) ? LemmatizerService.Language.RU : LemmatizerService.Language.EN;
@@ -32,11 +39,13 @@ class SubtitleCleanerTest {
         var lineCleaner = new com.ytdlpjava.subtitle.processor.impl.DefaultSubtitleLineCleaner(fillers);
         var assembler = new com.ytdlpjava.subtitle.processor.SubtitleTextAssembler(subConfig, lineCleaner);
 
+        LemmatizerService service = new LemmatizerService();
+        services.add(service);
         return new SubtitleCleaner(
                 language,
                 new SubtitleParser(),
                 assembler,
-                new KeywordExtractor(stopWords, new LemmatizerService(), language),
+                new KeywordExtractor(stopWords, service, language),
                 new KeywordHighlighter(),
                 new MarkdownFormatter()
         );

@@ -2,6 +2,7 @@ package com.ytdlpjava.processor;
 
 import com.ytdlpjava.util.LemmatizerService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -22,6 +23,11 @@ public class KeywordAnalyzerTest {
         List<String> stopWords = Arrays.asList("это", "быть", "я");
         extractor = new KeywordExtractor(stopWords, lemmatizer, LemmatizerService.Language.RU);
         highlighter = new KeywordHighlighter();
+    }
+
+    @AfterEach
+    void closeAnalyzers() {
+        lemmatizer.close();
     }
 
     @Test

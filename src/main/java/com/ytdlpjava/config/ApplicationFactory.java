@@ -34,7 +34,23 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ApplicationFactory {
+public class ApplicationFactory implements AutoCloseable {
+    private LemmatizerService lemmatizerService;
+    private boolean closed;
+
+    public LemmatizerService createLemmatizerService() {
+        if (closed) throw new IllegalStateException("Application factory is closed");
+        if (lemmatizerService == null) lemmatizerService = new LemmatizerService();
+        return lemmatizerService;
+    }
+
+    @Override
+    public void close() {
+        if (!closed) {
+            closed = true;
+            if (lemmatizerService != null) lemmatizerService.close();
+        }
+    }
     public ProcessExecutor createProcessExecutor() {
         return new ProcessExecutor();
     }
@@ -106,7 +122,7 @@ public class ApplicationFactory {
                 language,
                 new SubtitleParser(),
                 assembler,
-                new KeywordExtractor(stopWords, new LemmatizerService(), language),
+                new KeywordExtractor(stopWords, createLemmatizerService(), language),
                 new KeywordHighlighter(),
                 new MarkdownFormatter()
         );

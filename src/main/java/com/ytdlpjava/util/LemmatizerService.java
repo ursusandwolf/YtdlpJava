@@ -14,11 +14,12 @@ import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class LemmatizerService {
+public class LemmatizerService implements AutoCloseable {
 
     public enum Language { RU, EN, DE, ES, FR, IT, UK }
 
     private final Map<Language, Analyzer> analyzers = new EnumMap<>(Language.class);
+    private boolean closed;
 
     public LemmatizerService() {
         analyzers.put(Language.RU, new RussianAnalyzer());
@@ -31,6 +32,7 @@ public class LemmatizerService {
     }
 
     public String getLemma(String word, Language lang) {
+        if (closed) throw new IllegalStateException("Text analyzers are closed");
         Analyzer analyzer = analyzers.get(lang);
         if (analyzer == null) return word.toLowerCase();
 
@@ -44,5 +46,13 @@ public class LemmatizerService {
             // Fallback
         }
         return word.toLowerCase();
+    }
+
+    @Override
+    public void close() {
+        if (!closed) {
+            closed = true;
+            analyzers.values().forEach(Analyzer::close);
+        }
     }
 }

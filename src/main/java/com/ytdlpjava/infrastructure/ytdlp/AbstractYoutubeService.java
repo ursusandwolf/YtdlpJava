@@ -59,7 +59,7 @@ public abstract class AbstractYoutubeService implements Downloader {
         if (cmd.contains("--write-auto-sub")) {
             int subFormatIdx = c.indexOf("--sub-format");
             if (subFormatIdx != -1 && subFormatIdx + 1 < c.size()) {
-                c.set(subFormatIdx + 1, "vtt/json3/srv1/srv2/srv3/best");
+                c.set(subFormatIdx + 1, "vtt");
             }
         }
         return c;

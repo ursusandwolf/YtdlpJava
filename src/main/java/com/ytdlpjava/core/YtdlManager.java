@@ -4,9 +4,9 @@ import com.ytdlpjava.model.PlaylistProvider;
 import com.ytdlpjava.model.VideoTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -18,36 +18,46 @@ public class YtdlManager {
     public void process(String url, Path outputDir) {
         try {
             List<String> urls = playlistProvider.getPlaylistUrls(url);
+            if (urls == null || urls.isEmpty()) {
+                throw new YtdlManagerException("No videos found for " + url, null);
+            }
             log.info("Found {} item(s) to process", urls.size());
-
             Path effectiveOutputDir = outputDir;
             if (urls.size() > 1 || url.contains("playlist?list=")) {
-                String playlistTitle = playlistProvider.getPlaylistTitle(url);
-                if (playlistTitle != null && !playlistTitle.isEmpty() && !"NA".equalsIgnoreCase(playlistTitle)) {
-                    log.info("Raw playlist title: {}", playlistTitle);
-                    String sanitizedTitle = task.getFilenameProvider().buildFilename(playlistTitle, 60);
-                    log.info("Sanitized playlist title: {}", sanitizedTitle);
-                    effectiveOutputDir = outputDir.resolve(sanitizedTitle);
-                    log.info("Effective output directory: {}", effectiveOutputDir);
-                    if (!Files.exists(effectiveOutputDir)) {
-                        Files.createDirectories(effectiveOutputDir);
-                        log.info("Created playlist directory: {}", effectiveOutputDir);
-                    }
+                String title = playlistProvider.getPlaylistTitle(url);
+                if (title != null && !title.isBlank() && !"NA".equalsIgnoreCase(title)) {
+                    String name = task.getFilenameProvider().buildFilename(title, 60);
+                    effectiveOutputDir = outputDir.resolve(name);
                 }
             }
-            
+            Files.createDirectories(effectiveOutputDir);
+            List<Exception> failures = new ArrayList<>();
             for (int i = 0; i < urls.size(); i++) {
                 String currentUrl = urls.get(i);
                 log.info("Processing [{}/{}]: {}", i + 1, urls.size(), currentUrl);
                 try {
                     task.execute(currentUrl, effectiveOutputDir);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new YtdlManagerException("Processing interrupted", e);
                 } catch (Exception e) {
+                    failures.add(e);
                     log.error("Failed to process item {}: {}", currentUrl, e.getMessage());
-                    // Continue with next item in playlist instead of failing entirely
                 }
             }
+            log.info("Processing summary: {} successful, {} failed", urls.size() - failures.size(), failures.size());
+            if (!failures.isEmpty()) {
+                YtdlManagerException failure = new YtdlManagerException(
+                        failures.size() + " of " + urls.size() + " item(s) failed for " + url, failures.getFirst());
+                failures.stream().skip(1).forEach(failure::addSuppressed);
+                throw failure;
+            }
+        } catch (YtdlManagerException e) {
+            throw e;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new YtdlManagerException("Processing interrupted", e);
         } catch (Exception e) {
-            log.error("Failed to fetch playlist or process: ", e);
             throw new YtdlManagerException("Failed to fetch playlist or process: " + e.getMessage(), e);
         }
     }

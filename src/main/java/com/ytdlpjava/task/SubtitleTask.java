@@ -27,9 +27,7 @@ public class SubtitleTask implements VideoTask {
             String result = processor.process(downloadedFile);
             tempSubtitleFile = temporaryFileManager.writeTempFile(basename, ".md", result);
             
-            for (TaskResultHandler handler : resultHandlers) {
-                handler.handle(title, tempSubtitleFile);
-            }
+            ResultDispatcher.dispatch(resultHandlers, title, tempSubtitleFile, outputDir);
         } finally {
             temporaryFileManager.deleteIfExists(downloadedFile);
             log.debug("Deleted temporary VTT file: {}", downloadedFile);
