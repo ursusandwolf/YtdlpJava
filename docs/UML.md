@@ -1,6 +1,6 @@
 # UML YtdlpJava
 
-Диаграммы описывают текущие классы и сценарии после исправлений в `dev`.
+Диаграммы описывают классы и сценарии в `main`, коммит `2bb5c62` от 2026-10-11.
 GitHub отображает блоки Mermaid прямо в Markdown.
 [Архитектура](DOCUMENTATION.md) · [README](../README.md) · [Changelog](../CHANGELOG.md)
 
