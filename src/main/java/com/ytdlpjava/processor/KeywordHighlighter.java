@@ -39,7 +39,7 @@ public class KeywordHighlighter {
             String combinedPattern = wordsToHighlight.stream()
                     .map(Pattern::quote)
                     .collect(Collectors.joining("|"));
-            String pattern = "(?iu)(?<!\\*\\*)\\b(" + combinedPattern + ")\\b(?!\\*\\*)";
+            String pattern = "(?iuU)(?<!\\*\\*)\\b(" + combinedPattern + ")\\b(?!\\*\\*)";
             highlightedText = highlightedText.replaceAll(pattern, "**$1**");
         }
         

@@ -2,15 +2,30 @@ package com.ytdlpjava.infrastructure.ytdlp;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class YtdlpOutputParserTest {
     private final YtdlpOutputParser parser = new YtdlpOutputParser();
+
+    @ParameterizedTest
+    @ValueSource(strings = {"plain", "[brackets]"})
+    void acceptsExistingFileInCurrentDirectory(String name) throws Exception {
+        Path file = Path.of(name + "-" + UUID.randomUUID() + ".mp4");
+        Files.writeString(file, "content");
+        try {
+            assertEquals(file, parser.findLastExistingFilePath("[download] 100%\n" + file + "\n").orElseThrow());
+        } finally {
+            Files.deleteIfExists(file);
+        }
+    }
 
     @Test
     void findsLastExistingFilePath(@TempDir Path tempDir) throws Exception {

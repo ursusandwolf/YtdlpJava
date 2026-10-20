@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,15 @@ class ProcessExecutorTest {
     private List<String> command(String mode, Path pidFile) {
         return List.of(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
                 "-cp", System.getProperty("java.class.path"), Child.class.getName(), mode, pidFile.toString());
+    }
+
+    @Test
+    void decodesUtf8RegardlessOfJvmDefaultCharset() throws Exception {
+        Path result = tempDir.resolve("unicode.txt");
+        new ProcessExecutor().run(List.of(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+                "-Dfile.encoding=windows-1251", "-cp", System.getProperty("java.class.path"),
+                Child.class.getName(), "decode-utf8", result.toString()), "failed", 10, TimeUnit.SECONDS);
+        assertEquals("Все времена в немецком — Україна", Files.readString(result));
     }
 
     @Test
@@ -96,6 +106,14 @@ class ProcessExecutorTest {
             Path pid = Path.of(args[1]);
             Files.writeString(pid, Long.toString(ProcessHandle.current().pid()));
             switch (args[0]) {
+                case "utf8" -> System.out.write("Все времена в немецком — Україна".getBytes(StandardCharsets.UTF_8));
+                case "decode-utf8" -> {
+                    String output = new ProcessExecutor().run(List.of(
+                            Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+                            "-cp", System.getProperty("java.class.path"), Child.class.getName(),
+                            "utf8", pid + ".child"), "failed", 5, TimeUnit.SECONDS);
+                    Files.writeString(pid, output);
+                }
                 case "output" -> { System.out.println("stdout"); System.err.println("stderr"); }
                 case "fail" -> { System.err.println("diagnostic"); System.exit(7); }
                 default -> {

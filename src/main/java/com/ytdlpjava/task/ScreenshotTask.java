@@ -10,6 +10,7 @@ import com.ytdlpjava.model.VideoTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Path;
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -31,28 +32,31 @@ public class ScreenshotTask implements VideoTask {
         String basename = filenameProvider.buildFilename(title, 60);
 
         log.info("Downloading video for reliable screenshot extraction: {}", title);
-        Path videoFile = downloader.download(url, basename);
-        
-        try {
-            long duration = durationProvider.getDuration(url);
-            log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
+        try (DownloadWorkspace workspace = new DownloadWorkspace()) {
+            Path videoFile = workspace.download(downloader, url, basename);
 
-            for (long ts = 0; ts < duration; ts += intervalSeconds) {
-                Path tempScreenshot = temporaryFileManager.createTempFile(String.format("%s_%05d", basename, ts), ".jpg");
-                
-                log.debug("Capturing frame at {} -> {}", ts, tempScreenshot.getFileName());
+            try {
+                long duration = durationProvider.getDuration(url);
+                if (duration <= 0) throw new IOException("Video duration must be positive to capture screenshots");
+                log.info("Capturing screenshots for '{}' (Duration: {}s, Interval: {}s)", title, duration, intervalSeconds);
 
-                try {
-                    frameExtractor.extractFrame(videoFile, ts, tempScreenshot);
-                    ResultDispatcher.dispatch(resultHandlers, title + " (screenshot " + ts + "s)", tempScreenshot, outputDir);
-                } finally {
-                    temporaryFileManager.deleteIfExists(tempScreenshot);
+                for (long ts = 0; ts < duration; ts += intervalSeconds) {
+                    Path tempScreenshot = temporaryFileManager.createTempFile(String.format("%s_%05d", basename, ts), ".jpg");
+
+                    log.debug("Capturing frame at {} -> {}", ts, tempScreenshot.getFileName());
+
+                    try {
+                        frameExtractor.extractFrame(videoFile, ts, tempScreenshot);
+                        ResultDispatcher.dispatch(resultHandlers, title + " (screenshot " + ts + "s)", tempScreenshot, outputDir);
+                    } finally {
+                        temporaryFileManager.deleteIfExists(tempScreenshot);
+                    }
                 }
+                log.info("✅ Screenshot capture complete.");
+            } finally {
+                temporaryFileManager.deleteIfExists(videoFile);
+                log.debug("Deleted temporary video file: {}", videoFile);
             }
-            log.info("✅ Screenshot capture complete.");
-        } finally {
-            temporaryFileManager.deleteIfExists(videoFile);
-            log.debug("Deleted temporary video file: {}", videoFile);
         }
     }
 

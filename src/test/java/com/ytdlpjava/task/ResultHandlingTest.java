@@ -34,6 +34,25 @@ class ResultHandlingTest {
     }
 
     @Test
+    void unknownDurationFailsAndCleansDownloadWithoutCapturingFrames() throws Exception {
+        Downloader downloader = mock(Downloader.class);
+        when(downloader.getTitle("video")).thenReturn("title");
+        java.util.concurrent.atomic.AtomicReference<Path> source = new java.util.concurrent.atomic.AtomicReference<>();
+        when(downloader.download(eq("video"), anyString())).thenAnswer(call -> {
+            Path file = Files.writeString(Path.of(call.<String>getArgument(1) + ".mp4"), "video");
+            source.set(file);
+            return file;
+        });
+        when(downloader.getDuration("video")).thenReturn(0L);
+        FrameExtractor extractor = mock(FrameExtractor.class);
+        ScreenshotTask task = new ScreenshotTask(downloader, downloader, downloader, new FilenameGenerator(),
+                extractor, new FilesystemTemporaryFileManager(), 60, List.of());
+        assertThrows(IOException.class, () -> task.execute("video", tempDir));
+        verifyNoInteractions(extractor);
+        assertFalse(Files.exists(source.get().getParent()));
+    }
+
+    @Test
     void preservesSourceAndBothResultsOnNameCollision() throws Exception {
         Path source = Files.writeString(tempDir.resolve("source.txt"), "first");
         Path destination = tempDir.resolve("out");
@@ -83,10 +102,14 @@ class ResultHandlingTest {
 
     @Test
     void taskAttemptsRemainingHandlersAndCleansSourceOnFailure() throws Exception {
-        Path source = Files.writeString(tempDir.resolve("source.mp4"), "content");
+        java.util.concurrent.atomic.AtomicReference<Path> source = new java.util.concurrent.atomic.AtomicReference<>();
         Downloader downloader = mock(Downloader.class);
         when(downloader.getTitle("video")).thenReturn("title");
-        when(downloader.download(eq("video"), anyString())).thenReturn(source);
+        when(downloader.download(eq("video"), anyString())).thenAnswer(call -> {
+            Path file = Files.writeString(Path.of(call.<String>getArgument(1) + ".mp4"), "content");
+            source.set(file);
+            return file;
+        });
         AtomicBoolean read = new AtomicBoolean();
         TaskResultHandler failing = (title, path) -> { throw new IOException("unavailable"); };
         TaskResultHandler observer = (title, path) -> {
@@ -98,7 +121,7 @@ class ResultHandlingTest {
         Exception failure = assertThrows(Exception.class, () -> task.execute("video", tempDir.resolve("out")));
         assertEquals("unavailable", failure.getCause().getMessage());
         assertTrue(read.get());
-        assertFalse(Files.exists(source));
+        assertFalse(Files.exists(source.get()));
     }
 
     @Test
@@ -111,8 +134,12 @@ class ResultHandlingTest {
         when(downloader.getPlaylistTitle(first)).thenReturn("One");
         when(downloader.getPlaylistTitle(second)).thenReturn("Two");
         when(downloader.getTitle(anyString())).thenReturn("same");
-        Path source = tempDir.resolve("same.mp4");
-        when(downloader.download(anyString(), anyString())).thenAnswer(call -> Files.writeString(source, call.getArgument(0)));
+        List<Path> sources = new ArrayList<>();
+        when(downloader.download(anyString(), anyString())).thenAnswer(call -> {
+            Path file = Files.writeString(Path.of(call.<String>getArgument(1) + ".mp4"), call.getArgument(0));
+            sources.add(file);
+            return file;
+        });
         Path out = tempDir.resolve("out");
         VideoDownloadTask task = new VideoDownloadTask(downloader, downloader, (title, length) -> title,
                 new FilesystemTemporaryFileManager(), List.of(new FileResultHandler(out)));
@@ -123,6 +150,6 @@ class ResultHandlingTest {
         assertEquals("b", Files.readString(out.resolve("One/same (1).mp4")));
         assertEquals("c", Files.readString(out.resolve("Two/same.mp4")));
         assertFalse(Files.exists(out.resolve("same.mp4")));
-        assertFalse(Files.exists(source));
+        assertTrue(sources.stream().noneMatch(Files::exists));
     }
 }

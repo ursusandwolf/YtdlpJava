@@ -12,8 +12,10 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class FilenameGenerator implements FilenameProvider {
-    private static final Pattern ILLEGAL_CHARS = Pattern.compile("[\\\\/*?:\"<>|]");
+    private static final Pattern ILLEGAL_CHARS = Pattern.compile("[\\\\/*?:\"<>|\\x00-\\x1F]");
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+    private static final Pattern TRAILING_DOTS_AND_SPACES = Pattern.compile("[. ]+$");
+    private static final Pattern RESERVED_NAME = Pattern.compile("(?i)CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³]");
 
     private record DatePattern(Pattern pattern, DateTimeFormatter formatter) {}
 
@@ -29,6 +31,7 @@ public class FilenameGenerator implements FilenameProvider {
 
     @Override
     public String buildFilename(String title, int maxLength) {
+        if (maxLength <= 0) throw new IllegalArgumentException("Filename limit must be positive");
         String sanitizedTitle = sanitizeFilename(title);
         var dateInfo = extractDate(sanitizedTitle);
 
@@ -37,11 +40,23 @@ public class FilenameGenerator implements FilenameProvider {
                 .orElse(sanitizedTitle);
 
         int reservedLength = dateInfo.normalizedDate().map(d -> d.length() + 1).orElse(0);
+        if (reservedLength >= maxLength) return makePortable(smartTruncate(sanitizedTitle, maxLength), maxLength);
         String mainPart = smartTruncate(titleWoDate, maxLength - reservedLength);
 
-        return dateInfo.normalizedDate()
+        String filename = dateInfo.normalizedDate()
                 .map(d -> (mainPart + " " + d).trim())
                 .orElse(mainPart);
+        return makePortable(filename, maxLength);
+    }
+
+    private String makePortable(String filename, int maxLength) {
+        String safe = TRAILING_DOTS_AND_SPACES.matcher(filename).replaceAll("");
+        if (safe.isEmpty()) safe = "video";
+        int dot = safe.indexOf('.');
+        String stem = (dot < 0 ? safe : safe.substring(0, dot)).stripTrailing();
+        if (RESERVED_NAME.matcher(stem).matches()) safe = "_" + safe;
+        safe = safe.substring(0, Math.min(safe.length(), maxLength));
+        return TRAILING_DOTS_AND_SPACES.matcher(safe).replaceAll("");
     }
 
     private String sanitizeFilename(String name) {

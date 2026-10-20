@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class KeywordExtractor {
-    private static final Pattern WORD_PATTERN = Pattern.compile("(?iu)[а-яёa-z]{3,}");
+    private static final Pattern WORD_PATTERN = Pattern.compile("(?:\\p{L}\\p{M}*){3,}");
     
     private final Set<String> stopWords;
     private final LemmatizerService lemmatizer;
@@ -17,7 +17,7 @@ public class KeywordExtractor {
     public KeywordExtractor(List<String> stopWords, LemmatizerService lemmatizer, LemmatizerService.Language lang) {
         this.lemmatizer = lemmatizer;
         this.stopWords = stopWords.stream()
-                .map(word -> lemmatizer.getLemma(word.toLowerCase(), lang))
+                .map(word -> lemmatizer.getLemma(word.toLowerCase(Locale.ROOT), lang))
                 .collect(Collectors.toSet());
     }
 
@@ -30,7 +30,7 @@ public class KeywordExtractor {
         Matcher m = WORD_PATTERN.matcher(text);
         
         while (m.find()) {
-            String original = m.group().toLowerCase();
+            String original = m.group().toLowerCase(Locale.ROOT);
             String stem = lemmatizer.getLemma(original, lang);
             
             if (!stopWords.contains(stem)) {

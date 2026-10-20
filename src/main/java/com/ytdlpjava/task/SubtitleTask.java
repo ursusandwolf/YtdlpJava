@@ -20,18 +20,20 @@ public class SubtitleTask implements VideoTask {
     public void execute(String url, Path outputDir) throws Exception {
         String title = titleProvider.getTitle(url);
         String basename = filenameProvider.buildFilename(title, 60);
-        
-        Path downloadedFile = downloader.download(url, basename);
-        Path tempSubtitleFile = null;
-        try {
-            String result = processor.process(downloadedFile);
-            tempSubtitleFile = temporaryFileManager.writeTempFile(basename, ".md", result);
-            
-            ResultDispatcher.dispatch(resultHandlers, title, tempSubtitleFile, outputDir);
-        } finally {
-            temporaryFileManager.deleteIfExists(downloadedFile);
-            log.debug("Deleted temporary VTT file: {}", downloadedFile);
-            temporaryFileManager.deleteIfExists(tempSubtitleFile);
+
+        try (DownloadWorkspace workspace = new DownloadWorkspace()) {
+            Path downloadedFile = workspace.download(downloader, url, basename);
+            Path tempSubtitleFile = null;
+            try {
+                String result = processor.process(downloadedFile);
+                tempSubtitleFile = temporaryFileManager.writeTempFile(basename, ".md", result);
+
+                ResultDispatcher.dispatch(resultHandlers, title, tempSubtitleFile, outputDir);
+            } finally {
+                temporaryFileManager.deleteIfExists(downloadedFile);
+                log.debug("Deleted temporary VTT file: {}", downloadedFile);
+                temporaryFileManager.deleteIfExists(tempSubtitleFile);
+            }
         }
     }
 

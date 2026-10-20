@@ -1,10 +1,26 @@
 package com.ytdlpjava.util;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FilenameGeneratorTest {
     private final FilenameGenerator generator = new FilenameGenerator();
+
+    @ParameterizedTest
+    @CsvSource({"., video", ".., video", "..., video", "CON, _CON", "con.txt, _con.txt",
+            "NUL, _NUL", "PRN, _PRN", "AUX, _AUX", "COM1, _COM1", "LPT9.log, _LPT9.log",
+            "normal., normal", "CON ., _CON", "COM10, COM10", "COM¹, _COM¹", "LPT².txt, _LPT².txt"})
+    void generatesPortableNames(String title, String expected) {
+        assertEquals(expected, generator.buildFilename(title, 60));
+    }
+
+    @Test
+    void keepsNameSafeAfterTruncation() {
+        assertEquals("_CO", generator.buildFilename("CONference", 3));
+        assertEquals("_CON", generator.buildFilename("CON.txt", 5));
+    }
 
     @Test
     void testBuildFilenameWithDate() {

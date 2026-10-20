@@ -29,7 +29,7 @@ public class AudioDownloader extends AbstractYoutubeService {
                 "-x",
                 "--audio-format", format,
                 "--audio-quality", quality,
-                "--output", outputBasename + ".%(ext)s",
+                "--output", outputBasename.replace("%", "%%") + ".%(ext)s",
                 "--print", "after_move:filepath",
                 videoUrl
         );

@@ -19,14 +19,16 @@ public class VideoDownloadTask implements VideoTask {
     public void execute(String url, Path outputDir) throws Exception {
         String title = titleProvider.getTitle(url);
         String basename = filenameProvider.buildFilename(title, 60);
-        
-        log.info("Downloading video: {}", title);
-        Path downloadedFile = downloader.download(url, basename);
 
-        try {
-            ResultDispatcher.dispatch(resultHandlers, title, downloadedFile, outputDir);
-        } finally {
-            temporaryFileManager.deleteIfExists(downloadedFile);
+        log.info("Downloading video: {}", title);
+        try (DownloadWorkspace workspace = new DownloadWorkspace()) {
+            Path downloadedFile = workspace.download(downloader, url, basename);
+
+            try {
+                ResultDispatcher.dispatch(resultHandlers, title, downloadedFile, outputDir);
+            } finally {
+                temporaryFileManager.deleteIfExists(downloadedFile);
+            }
         }
     }
 

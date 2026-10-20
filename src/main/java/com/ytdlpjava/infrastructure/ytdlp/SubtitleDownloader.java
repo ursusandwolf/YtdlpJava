@@ -24,13 +24,14 @@ public class SubtitleDownloader extends AbstractYoutubeService {
                 "--ignore-errors",
                 "--newline",
                 "--progress",
+                "--write-subs",
                 "--write-auto-sub",
                 "--sub-lang", lang,
                 "--sub-format", "vtt",
                 "--no-continue",
                 "--no-part",
                 "--skip-download",
-                "--output", outputBasename,
+                "--output", outputBasename.replace("%", "%%"),
                 videoUrl
         );
 
@@ -38,10 +39,12 @@ public class SubtitleDownloader extends AbstractYoutubeService {
         runResiliently(command, "Subtitle download failed");
 
         // yt-dlp appends .lang.ext (e.g., .en.vtt). Find the resulting file.
-        try (var files = Files.list(Path.of("."))) {
+        Path basename = Path.of(outputBasename).toAbsolutePath();
+        String prefix = basename.getFileName() + "." + lang + ".";
+        try (var files = Files.list(basename.getParent())) {
             return files
                     .filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().startsWith(outputBasename + "." + lang + ".")
+                    .filter(p -> p.getFileName().toString().startsWith(prefix)
                             && p.getFileName().toString().endsWith(".vtt"))
                     .findFirst()
                     .orElseThrow(() -> new IOException("No supported VTT subtitles found for " + outputBasename

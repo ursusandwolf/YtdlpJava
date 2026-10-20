@@ -20,12 +20,14 @@ public class AudioTask implements VideoTask {
         String title = titleProvider.getTitle(url);
         String basename = filenameProvider.buildFilename(title, 60);
         log.info("Downloading audio for: {}", title);
-        Path downloadedFile = downloader.download(url, basename);
-        
-        try {
-            ResultDispatcher.dispatch(resultHandlers, title, downloadedFile, outputDir);
-        } finally {
-            temporaryFileManager.deleteIfExists(downloadedFile);
+        try (DownloadWorkspace workspace = new DownloadWorkspace()) {
+            Path downloadedFile = workspace.download(downloader, url, basename);
+
+            try {
+                ResultDispatcher.dispatch(resultHandlers, title, downloadedFile, outputDir);
+            } finally {
+                temporaryFileManager.deleteIfExists(downloadedFile);
+            }
         }
     }
 

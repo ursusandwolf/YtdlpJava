@@ -3,6 +3,7 @@ package com.ytdlpjava.infrastructure.ytdlp;
 import com.ytdlpjava.core.ProcessExecutor;
 import com.ytdlpjava.core.ProcessExecutionException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +27,22 @@ class SubtitleDownloaderTest {
         assertEquals(5, calls.size());
         for (List<String> command : calls) {
             assertEquals("vtt", command.get(command.indexOf("--sub-format") + 1));
+            assertTrue(command.contains("--write-subs"));
+            assertTrue(command.contains("--write-auto-sub"));
         }
+    }
+
+    @Test
+    void findsSubtitlesInsideDownloadDirectory(@TempDir Path directory) throws Exception {
+        Path basename = directory.resolve("title");
+        Path expected = Path.of(basename + ".en.vtt");
+        var executor = new ProcessExecutor() {
+            @Override public String run(List<String> command, String message) throws IOException {
+                Files.writeString(expected, "WEBVTT");
+                return "";
+            }
+        };
+        assertEquals(expected, new SubtitleDownloader(executor, "en").download("video", basename.toString()));
     }
 
     @Test

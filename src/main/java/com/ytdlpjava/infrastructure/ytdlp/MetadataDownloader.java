@@ -22,11 +22,11 @@ public class MetadataDownloader extends AbstractYoutubeService {
             "--skip-download",
             "--write-description",
             "--write-info-json",
-            "-o", outputBasename,
+            "-o", outputBasename.replace("%", "%%"),
             url
         );
         log.info("Extracting metadata for: {}", url);
-        executor.run(command, "Failed to extract metadata");
+        runResiliently(command, "Failed to extract metadata");
         
         Path jsonPath = Path.of(outputBasename + ".info.json");
         Path descPath = Path.of(outputBasename + ".description");

@@ -27,6 +27,11 @@ public class YtdlManager {
                 String title = playlistProvider.getPlaylistTitle(url);
                 if (title != null && !title.isBlank() && !"NA".equalsIgnoreCase(title)) {
                     String name = task.getFilenameProvider().buildFilename(title, 60);
+                    Path directoryName = Path.of(name);
+                    if (name.isBlank() || directoryName.getRoot() != null || directoryName.getNameCount() != 1
+                            || name.equals(".") || name.equals("..")) {
+                        throw new IllegalArgumentException("Playlist directory must be a single filename");
+                    }
                     effectiveOutputDir = outputDir.resolve(name);
                 }
             }

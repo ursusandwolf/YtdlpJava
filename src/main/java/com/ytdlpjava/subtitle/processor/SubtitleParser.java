@@ -8,11 +8,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SubtitleParser {
-    private static final Pattern BLOCK_PATTERN = Pattern.compile("(\\d{2}:\\d{2}:\\d{2}\\.\\d{3}) --> .*?\\n(.*?)(?=\\n\\n|\\Z)", Pattern.DOTALL);
+    private static final Pattern BLOCK_PATTERN = Pattern.compile("((?:\\d{2,}:)?\\d{2}:\\d{2}\\.\\d{3}) --> .*?\\n(.*?)(?=\\n\\n|\\Z)", Pattern.DOTALL);
 
     public List<SubtitleBlock> parse(String rawText) {
         List<SubtitleBlock> blocks = new ArrayList<>();
-        Matcher matcher = BLOCK_PATTERN.matcher(rawText);
+        Matcher matcher = BLOCK_PATTERN.matcher(rawText.replace("\r\n", "\n").replace('\r', '\n'));
         while (matcher.find()) {
             Duration timestamp = parseTimestamp(matcher.group(1));
             blocks.add(new SubtitleBlock(timestamp, matcher.group(2)));
@@ -22,9 +22,10 @@ public class SubtitleParser {
 
     private Duration parseTimestamp(String ts) {
         String[] parts = ts.split(":");
-        String[] sMs = parts[2].split("\\.");
-        return Duration.ofHours(Long.parseLong(parts[0]))
-                .plusMinutes(Long.parseLong(parts[1]))
+        int minutesIndex = parts.length - 2;
+        String[] sMs = parts[parts.length - 1].split("\\.");
+        return Duration.ofHours(parts.length == 3 ? Long.parseLong(parts[0]) : 0)
+                .plusMinutes(Long.parseLong(parts[minutesIndex]))
                 .plusSeconds(Long.parseLong(sMs[0]))
                 .plusMillis(Long.parseLong(sMs[1]));
     }

@@ -19,14 +19,16 @@ public class MetadataTask implements VideoTask {
     public void execute(String url, Path outputDir) throws Exception {
         String title = titleProvider.getTitle(url);
         String basename = filenameProvider.buildFilename(title, 60);
-        
+
         log.info("Starting metadata extraction for: {}", title);
-        Path result = downloader.download(url, basename);
-        
-        try {
-            ResultDispatcher.dispatch(resultHandlers, title, result, outputDir);
-        } finally {
-            temporaryFileManager.deleteIfExists(result);
+        try (DownloadWorkspace workspace = new DownloadWorkspace()) {
+            Path result = workspace.download(downloader, url, basename);
+
+            try {
+                ResultDispatcher.dispatch(resultHandlers, title, result, outputDir);
+            } finally {
+                temporaryFileManager.deleteIfExists(result);
+            }
         }
     }
 

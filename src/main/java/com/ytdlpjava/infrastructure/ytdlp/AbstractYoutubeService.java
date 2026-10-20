@@ -1,6 +1,8 @@
 package com.ytdlpjava.infrastructure.ytdlp;
 
 import com.ytdlpjava.core.ProcessExecutor;
+import com.ytdlpjava.core.ProcessExecutionException;
+import com.ytdlpjava.core.ProcessTimeoutException;
 import com.ytdlpjava.model.Downloader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.UnaryOperator;
 
 @Slf4j
@@ -18,6 +21,10 @@ public abstract class AbstractYoutubeService implements Downloader {
 
     protected String runResiliently(List<String> command, String errorMessage) throws IOException, InterruptedException {
         List<String> baseCommand = new ArrayList<>(command);
+        if (!baseCommand.isEmpty() && "yt-dlp".equals(baseCommand.getFirst()) && !baseCommand.contains("--encoding")) {
+            baseCommand.add(1, "--encoding");
+            baseCommand.add(2, "utf-8");
+        }
         if (!baseCommand.isEmpty() && "yt-dlp".equals(baseCommand.get(0)) && !baseCommand.contains("--js-runtimes")) {
             baseCommand.add(1, "--js-runtimes");
             baseCommand.add(2, "node");
@@ -74,7 +81,7 @@ public abstract class AbstractYoutubeService implements Downloader {
                 return executor.run(command, errorMessage);
             } catch (RuntimeException e) {
                 attempt++;
-                if (attempt >= maxRetries || !isTransientError(e.getMessage())) {
+                if (attempt >= maxRetries || !isTransientError(e)) {
                     throw e;
                 }
                 long sleepMs = (long) Math.pow(2, attempt) * 1000;
@@ -84,9 +91,12 @@ public abstract class AbstractYoutubeService implements Downloader {
         }
     }
 
-    private boolean isTransientError(String message) {
+    private boolean isTransientError(RuntimeException failure) {
+        if (failure instanceof ProcessTimeoutException) return true;
+        String message = failure instanceof ProcessExecutionException execution
+                ? execution.getOutput() : failure.getMessage();
         if (message == null) return false;
-        String lower = message.toLowerCase();
+        String lower = message.toLowerCase(Locale.ROOT);
         return lower.contains("timed out") || 
                lower.contains("connection reset") || 
                lower.contains("503") || 
@@ -105,6 +115,8 @@ public abstract class AbstractYoutubeService implements Downloader {
         List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--print", "title", videoUrl);
         try {
             return runResiliently(command, "Failed to fetch video title").trim();
+        } catch (InterruptedException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Could not fetch video title for {}. Error: {}", videoUrl, e.getMessage());
             return "Unknown_Video_" + System.currentTimeMillis();
@@ -120,18 +132,31 @@ public abstract class AbstractYoutubeService implements Downloader {
         List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--print", "%(duration)j", videoUrl);
         try {
             String output = runResiliently(command, "Failed to fetch video duration");
-            return Long.parseLong(output);
+            return parseDuration(output);
+        } catch (InterruptedException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Could not parse duration for {}, trying fallback. Error: {}", videoUrl, e.getMessage());
             List<String> fallbackCmd = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--print", "duration", videoUrl);
             try {
                 String fallbackOutput = runResiliently(fallbackCmd, "Failed to fetch duration fallback");
-                return (long) Double.parseDouble(fallbackOutput);
+                return parseDuration(fallbackOutput);
+            } catch (InterruptedException interrupted) {
+                throw interrupted;
             } catch (Exception e2) {
-                log.error("Total failure parsing duration for {}: {}", videoUrl, e2.getMessage());
-                return 0;
+                IOException failure = new IOException("Unable to determine video duration for " + videoUrl, e2);
+                failure.addSuppressed(e);
+                throw failure;
             }
         }
+    }
+
+    private long parseDuration(String output) {
+        double seconds = Double.parseDouble(output.trim());
+        if (!Double.isFinite(seconds) || seconds <= 0 || seconds >= Long.MAX_VALUE) {
+            throw new IllegalArgumentException("Video duration must be finite and positive: " + output);
+        }
+        return (long) Math.ceil(seconds);
     }
 
     public List<String> getPlaylistUrls(String url) throws IOException, InterruptedException {
@@ -145,6 +170,8 @@ public abstract class AbstractYoutubeService implements Downloader {
 
             if (urls.isEmpty()) return List.of(url);
             return urls;
+        } catch (InterruptedException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Could not fetch playlist URLs for {}, treating as single video. Error: {}", url, e.getMessage());
             return List.of(url);
@@ -157,6 +184,8 @@ public abstract class AbstractYoutubeService implements Downloader {
         try {
             String output = runResiliently(command, "Failed to fetch playlist title");
             return output.lines().findFirst().orElse("Unknown_Playlist").trim();
+        } catch (InterruptedException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("Could not fetch playlist title for {}. Error: {}", url, e.getMessage());
             return "Unknown_Playlist";
