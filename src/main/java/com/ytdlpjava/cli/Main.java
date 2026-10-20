@@ -14,8 +14,12 @@ import java.util.List;
 @Slf4j
 public class Main {
     public static void main(String[] args) {
-        int status = run(args);
-        if (status != 0) System.exit(status);
+        ShutdownCancellation cancellation = new ShutdownCancellation();
+        int status;
+        try (cancellation) {
+            status = run(args);
+        }
+        if (status != 0 && !cancellation.isShuttingDown()) System.exit(status);
     }
 
     public static int run(String[] args) {

@@ -44,18 +44,18 @@ https://www.youtube.com/shorts/N3vr7ir5BXc
 - yt-dlp 2026.08.19, FFmpeg/ffprobe 9.0.2, Node.js 24.20.0.
 - yt-dlp и FFmpeg установлены через WinGet для пользователя, доступны в PATH.
 
-После сборки и подготовки runtime-зависимостей по README:
+Для выпуска 1.0.0 после сборки по README:
 
 ```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://www.youtube.com/shorts/N3vr7ir5BXc" -t video -o output/integration/video
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://www.youtube.com/shorts/N3vr7ir5BXc" -t audio -o output/integration/audio
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://www.youtube.com/shorts/N3vr7ir5BXc" -t metadata -o output/integration/metadata
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://www.youtube.com/shorts/N3vr7ir5BXc" -t screenshot -i 60 -o output/integration/screenshot
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://www.youtube.com/shorts/N3vr7ir5BXc" -t sub -l ru -o output/integration/sub
+java -jar target/ytdlp-java-1.0.0.jar "https://www.youtube.com/shorts/N3vr7ir5BXc" -t video -o output/integration/video
+java -jar target/ytdlp-java-1.0.0.jar "https://www.youtube.com/shorts/N3vr7ir5BXc" -t audio -o output/integration/audio
+java -jar target/ytdlp-java-1.0.0.jar "https://www.youtube.com/shorts/N3vr7ir5BXc" -t metadata -o output/integration/metadata
+java -jar target/ytdlp-java-1.0.0.jar "https://www.youtube.com/shorts/N3vr7ir5BXc" -t screenshot -i 60 -o output/integration/screenshot
+java -jar target/ytdlp-java-1.0.0.jar "https://www.youtube.com/shorts/N3vr7ir5BXc" -t sub -l ru -o output/integration/sub
 ```
 
-Доступность видео, дорожек и форматов может измениться. Публичный YouTube-плейлист
-по реальной ссылке и отправка Telegram пока не проверялись.
+Доступность видео, дорожек и форматов может измениться. Отправка Telegram
+проверена только mock-тестами. Проверка публичного плейлиста описана ниже.
 
 ## Дополнительные сценарии
 
@@ -81,3 +81,40 @@ yt-dlp, затем приложение обращалось к настоящи
 Локальные артефакты находятся в `target/boundary-checks/`: `results.json`,
 `cancellation-result.json`, `playlist-result.json`, логи, метаданные и два MP4.
 Предыдущие результаты в `target/shorts-N3vr7ir5BXc/verified/` сохранены.
+
+## Публичный плейлист и готовый JAR
+
+Проверен [GRAMMATIK EXPRESS: Grammatik in kurzen Videos](https://www.youtube.com/playlist?list=PLvvNB6A1QFO-f6FAZ5WMHcs_Nu8_8DFkA)
+канала Deutsch-Lounge. Deutsch lernen mit J. C. Dihlmann: шесть уроков
+продолжительностью от 1:03 до 8:35. Состав получен с YouTube, тестовый JSON не подставлялся.
+
+| Видео | Длительность |
+|---|---|
+| `IKmLT1x9eMY` | 8:35 |
+| `vjSAcY4Ywz8` | 6:00 |
+| `3oVybTGTCjE` | 1:34 |
+| `u5gBRqxfAHw` | 1:48 |
+| `6hibzqDUIFg` | 3:58 |
+| `o3ykIYxbyOM` | 1:03 |
+
+Два запуска `java -jar target/ytdlp-java-1.0.0.jar URL` с `-t metadata` и
+`-t sub -l de` завершились с кодом `0`. Получены шесть JSON с правильными ID
+и шесть непустых немецких Markdown-файлов без VTT-таймингов и повреждённого UTF-8.
+В обеих задачах файлы сгруппированы по названию плейлиста.
+Локальные протоколы и результаты: `target/release-playlist/`.
+
+## Настоящий Ctrl+C
+
+В отдельной скрытой Windows-консоли запущена реальная загрузка Shorts через JAR.
+После появления данных в рабочей папке отправлен `CTRL_C_EVENT`; скорость
+ограничена тестовым пользовательским конфигом yt-dlp до 1 КБ/с.
+
+Первый прогон воспроизвёл ошибку: код `130`, временный каталог остался.
+После добавления shutdown hook повторный прогон дал код `130`, процесс завершился,
+временный каталог удалён. Локальный протокол: `target/release-console-cancel/result.json`.
+Регрессионный тест проверяет закрытие ресурсов при остановке дочерней JVM.
+
+Для выпуска выполнен `mvn verify`: **120 модульных тестов + 3 проверки готового JAR**,
+без ошибок и пропусков. Проверены запуск JAR из постороннего каталога, код ошибки
+аргументов, загрузка словарей семи языков и наличие лицензии. CI выполняет ту же
+проверку с чистой сборкой на Java 21 под Windows и Linux.

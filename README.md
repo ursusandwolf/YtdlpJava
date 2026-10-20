@@ -5,10 +5,12 @@
 **От YouTube-ссылки до текста, аудио и кадров — из командной строки.**
 
 ![Java 21](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square)
-![Maven](https://img.shields.io/badge/build-Maven-C71A36?style=flat-square)
+[![Build and test](https://github.com/ursusandwolf/YtdlpJava/actions/workflows/ci.yml/badge.svg)](https://github.com/ursusandwolf/YtdlpJava/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ursusandwolf/YtdlpJava?style=flat-square)](https://github.com/ursusandwolf/YtdlpJava/releases/latest)
+[![MIT](https://img.shields.io/badge/license-MIT-2D6A4F?style=flat-square)](LICENSE)
 ![CLI](https://img.shields.io/badge/interface-CLI-2D6A4F?style=flat-square)
 
-[Быстрый старт](#быстрый-старт) · [Примеры](#примеры) · [Параметры](#параметры-cli) · [Архитектура](docs/DOCUMENTATION.md) · [UML](docs/UML.md) · [Changelog](CHANGELOG.md)
+[Скачать v1.0.0](https://github.com/ursusandwolf/YtdlpJava/releases/tag/v1.0.0) · [Быстрый старт](#быстрый-старт) · [Примеры](#примеры) · [Параметры](#параметры-cli) · [Архитектура](docs/DOCUMENTATION.md) · [Changelog](CHANGELOG.md)
 
 </div>
 
@@ -48,8 +50,8 @@ YouTube-контента и `ffmpeg` для обработки медиа. Он�
 
 | Инструмент | Для чего нужен |
 |---|---|
-| **JDK 21** | Сборка и запуск приложения |
-| **Maven** | Зависимости и тесты |
+| **Java 21+** | Запуск готового JAR; для разработки нужен JDK 21 |
+| **Maven** | Только сборка из исходников и тесты |
 | **yt-dlp** | Контент, субтитры и метаданные |
 | **ffmpeg** | Аудио, объединение потоков и извлечение кадров |
 | **Node.js** | JS runtime: приложение передаёт `--js-runtimes node` в yt-dlp |
@@ -58,84 +60,72 @@ YouTube-контента и `ffmpeg` для обработки медиа. Он�
 
 ```shell
 java -version
-mvn -version
 yt-dlp --version
 ffmpeg -version
 node --version
 ```
 
-### 2. Получите исходники и соберите проект
+### 2. Скачайте готовый релиз
 
-Основная ветка с кодом приложения — `main`.
+На [странице v1.0.0](https://github.com/ursusandwolf/YtdlpJava/releases/tag/v1.0.0)
+скачайте `ytdlp-java-1.0.0.jar` и `SHA256SUMS` в одну папку.
+JAR содержит Java-зависимости и словари семи языков.
 
-```shell
-git clone --branch main https://github.com/ursusandwolf/YtdlpJava.git
-cd YtdlpJava
-mvn clean verify
-mvn org.apache.maven.plugins:maven-dependency-plugin:3.6.1:copy-dependencies -DincludeScope=runtime -DoutputDirectory=target/dependency
-```
+Для проверки SHA-256 используйте `Get-FileHash ytdlp-java-1.0.0.jar -Algorithm SHA256`
+в PowerShell или `sha256sum -c SHA256SUMS` в Linux; значение должно совпадать с `SHA256SUMS`.
 
 ### 3. Запустите приложение
 
-**Windows / PowerShell**
-
-```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main
-```
-
-**Linux / macOS**
-
 ```shell
-java -cp "target/classes:target/dependency/*" com.ytdlpjava.cli.Main
+java -jar ytdlp-java-1.0.0.jar --help
+java -jar ytdlp-java-1.0.0.jar
 ```
 
 Без URL откроется интерактивный мастер: он предложит выбрать ссылку, задачу
 и язык субтитров или формат аудио. Для справки добавьте `--help`.
 
-> Текущая Maven-сборка создаёт обычный JAR без `Main-Class` и включённых зависимостей.
-> Используйте classpath-команды выше. Запуск через `java -jar` пока не предусмотрен.
-> После `mvn clean` папку runtime-зависимостей нужно подготовить заново.
+> `yt-dlp`, FFmpeg и Node.js устанавливаются отдельно и должны быть доступны в PATH.
+> После установки инструментов перезапустите терминал и IDE.
 
 ## Примеры
 
-Команды ниже предназначены для PowerShell. В Linux / macOS замените
-`;` между элементами classpath на `:`.
+Команды одинаковы в PowerShell, Linux и macOS.
 Замените `VIDEO_ID` и `PLAYLIST_ID` на свои идентификаторы.
 
 ### Субтитры на русском
 
 ```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://youtu.be/VIDEO_ID" -t sub -l ru
+java -jar ytdlp-java-1.0.0.jar "https://youtu.be/VIDEO_ID" -t sub -l ru
 ```
 
 ### Аудио в MP3
 
 ```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://youtu.be/VIDEO_ID" -t audio --format mp3 --quality 0
+java -jar ytdlp-java-1.0.0.jar "https://youtu.be/VIDEO_ID" -t audio --format mp3 --quality 0
 ```
 
 ### Кадр каждые 30 секунд
 
 ```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://youtu.be/VIDEO_ID" -t screenshot -i 30
+java -jar ytdlp-java-1.0.0.jar "https://youtu.be/VIDEO_ID" -t screenshot -i 30
 ```
 
 ### Видео из плейлиста
 
 ```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://www.youtube.com/playlist?list=PLAYLIST_ID" -t video
+java -jar ytdlp-java-1.0.0.jar "https://www.youtube.com/playlist?list=PLAYLIST_ID" -t video
 ```
 
 ### Метаданные в отдельный каталог
 
 ```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://youtu.be/VIDEO_ID" -t metadata -o downloads/metadata
+java -jar ytdlp-java-1.0.0.jar "https://youtu.be/VIDEO_ID" -t metadata -o downloads/metadata
 ```
 
 ### Несколько ссылок за один запуск
 
 ```powershell
-java -cp "target/classes;target/dependency/*" com.ytdlpjava.cli.Main "https://youtu.be/FIRST_ID" "https://youtu.be/SECOND_ID" -t sub -l de
+java -jar ytdlp-java-1.0.0.jar "https://youtu.be/FIRST_ID" "https://youtu.be/SECOND_ID" -t sub -l de
 ```
 
 ## Параметры CLI
@@ -193,11 +183,16 @@ flowchart LR
 ## Проверки и разработка
 
 ```shell
+git clone https://github.com/ursusandwolf/YtdlpJava.git
+cd YtdlpJava
 mvn clean verify
+java -jar target/ytdlp-java-1.0.0.jar --help
 ```
 
-Проверка от 2026-10-20 завершилась успешно: **119 тестов**, без ошибок, падений
-и пропусков. Набор покрывает таймауты реальных дочерних Java-процессов,
+Набор содержит **120 модульных проверок и 3 проверки готового JAR**.
+GitHub Actions выполняет `mvn clean verify` на Java 21 под Windows и Linux.
+Проверяется запуск JAR из другой папки, коды завершения и наличие словарей.
+Модульный набор покрывает таймауты реальных дочерних Java-процессов,
 каталоги плейлистов, параллельные коллизии файлов, обработчики результатов,
 проверки CLI, ответы Telegram через mock и обработку текста. Добавлены проверки
 изоляции загрузок и очистки при сбоях, прерывания запросов, повторов HTTP 503
@@ -222,9 +217,9 @@ mvn clean verify
 - Последний резервный формат видео `best` может превышать 720p.
 - Telegram-адаптер проверяет ответ API, но CLI пока не предоставляет флаги токена и chat ID.
 - Предел абзаца применяется до добавления Markdown-разметки.
-- Реальные загрузка YouTube и обработка ffmpeg проверены на одном Shorts для пяти задач;
-  плейлист дополнительно проверен на контролируемом наборе реальных видео.
-  Публичный YouTube-плейлист по URL и отправка Telegram пока не проверялись.
+- Все пять задач проверены на Shorts; публичный плейлист из шести уроков немецкого
+  проверен через исполняемый JAR для метаданных и немецких субтитров.
+  Отправка Telegram пока проверена только mock-тестами.
 - Используется SLF4J/Logback; собственного `logback.xml` в репозитории нет.
 
 ## Документация
@@ -234,11 +229,15 @@ mvn clean verify
 | [Архитектура](docs/DOCUMENTATION.md) | Пакеты, зависимости и потоки данных |
 | [UML](docs/UML.md) | Классы, обработка плейлистов и жизненный цикл результата |
 | [Changelog](CHANGELOG.md) | Единая история изменений |
+| [Релиз v1.0.0](docs/releases/v1.0.0.md) | Возможности, установка, проверки и ограничения выпуска |
+| [Процесс выпуска](docs/RELEASING.md) | Сборка, CI, контрольные суммы и публикация |
+| [Внешние зависимости](THIRD_PARTY_NOTICES.md) | Состав JAR и уведомления о лицензиях |
 | [Анализ кода](docs/coderev.md) | Исправленные находки, проверки и ограничения |
-| [Контекст проекта](docs/PROJECT_CONTEXT.md) | Текущее состояние и задачи к выпуску |
+| [Контекст проекта](docs/PROJECT_CONTEXT.md) | Состояние выпуска и возможные улучшения |
 | [Итоги слияния](docs/MERGE.md) | Выполненное слияние и архив подготовительного документа |
 | [Пакет субтитров](src/main/java/com/ytdlpjava/subtitle/README.md) | API обработки VTT |
 
 ## Лицензия
 
-Файл лицензии пока отсутствует. До оформления лицензии проект не заявляется как MIT.
+[MIT](LICENSE), © 2026 ursusandwolf. Внешние компоненты сохраняют собственные лицензии;
+см. [уведомления о зависимостях](THIRD_PARTY_NOTICES.md).
