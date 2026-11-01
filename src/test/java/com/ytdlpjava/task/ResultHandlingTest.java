@@ -116,8 +116,8 @@ class ResultHandlingTest {
             assertEquals("content", Files.readString(path));
             read.set(true);
         };
-        VideoDownloadTask task = new VideoDownloadTask(downloader, downloader, new FilenameGenerator(),
-                new FilesystemTemporaryFileManager(), List.of(failing, observer));
+        DownloadAndDispatchTask task = new DownloadAndDispatchTask(downloader, downloader, new FilenameGenerator(),
+                new FilesystemTemporaryFileManager(), List.of(failing, observer), "video");
         Exception failure = assertThrows(Exception.class, () -> task.execute("video", tempDir.resolve("out")));
         assertEquals("unavailable", failure.getCause().getMessage());
         assertTrue(read.get());
@@ -141,8 +141,8 @@ class ResultHandlingTest {
             return file;
         });
         Path out = tempDir.resolve("out");
-        VideoDownloadTask task = new VideoDownloadTask(downloader, downloader, (title, length) -> title,
-                new FilesystemTemporaryFileManager(), List.of(new FileResultHandler(out)));
+        DownloadAndDispatchTask task = new DownloadAndDispatchTask(downloader, downloader, (title, length) -> title,
+                new FilesystemTemporaryFileManager(), List.of(new FileResultHandler(out)), "video");
         YtdlManager manager = new YtdlManager(task, downloader);
         manager.process(first, out);
         manager.process(second, out);

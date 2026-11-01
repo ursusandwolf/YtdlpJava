@@ -123,11 +123,6 @@ public abstract class AbstractYoutubeService implements Downloader {
         }
     }
 
-    public String getStreamUrl(String videoUrl) throws IOException, InterruptedException {
-        List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "-f", "bestvideo[ext=mp4]/best[ext=mp4]/best", "-g", videoUrl);
-        return runResiliently(command, "Failed to fetch stream URL");
-    }
-
     public long getDuration(String videoUrl) throws IOException, InterruptedException {
         List<String> command = List.of("yt-dlp", "--no-warnings", "--ignore-errors", "--print", "%(duration)j", videoUrl);
         try {

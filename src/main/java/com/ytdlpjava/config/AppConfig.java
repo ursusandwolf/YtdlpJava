@@ -39,6 +39,12 @@ public class AppConfig {
     @Parameter(names = {"-h", "--help"}, help = true, description = "Показать справку")
     private boolean help;
 
+    @Parameter(names = {"-v", "--verbose"}, description = "Подробные логи (DEBUG)")
+    private boolean verbose;
+
+    @Parameter(names = {"--log-level"}, description = "Уровень логов: ERROR, WARN, INFO, DEBUG, TRACE")
+    private String logLevel;
+
     public void validate() {
         type = normalize(type, "Task type");
         audioFormat = normalize(audioFormat, "Audio format");
@@ -57,6 +63,13 @@ public class AppConfig {
             throw new IllegalArgumentException("Output directory must not be blank");
         }
         Path.of(outputDir);
+        if (logLevel != null && !logLevel.isBlank()) {
+            String level = logLevel.trim().toUpperCase(Locale.ROOT);
+            if (!Set.of("ERROR", "WARN", "INFO", "DEBUG", "TRACE").contains(level)) {
+                throw new IllegalArgumentException("Unsupported log level: " + logLevel);
+            }
+            logLevel = level;
+        }
     }
 
     private static String normalize(String value, String label) {

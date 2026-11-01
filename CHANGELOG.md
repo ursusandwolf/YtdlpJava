@@ -7,7 +7,22 @@
 
 ## [Unreleased]
 
-Изменений после подготовки v1.0.0 пока нет.
+### Added
+- Preflight внешних инструментов до загрузки: всегда `yt-dlp` и `node`,
+  `ffmpeg` — для задач `audio` / `video` / `screenshot`. Отсутствие даёт код `2`.
+- CLI-флаги `-v` / `--verbose` и `--log-level`, конфигурация `logback.xml`.
+- Общая задача `DownloadAndDispatchTask` для audio/video/metadata.
+- `WindowsCommandResolver`: на Windows находятся `.cmd`/`.bat` shim через PATH+PATHEXT.
+- Карта для ШІ [`AI_MAP.md`](AI_MAP.md), обучение [`docs/LEARNING.md`](docs/LEARNING.md),
+  аудит [`PROJECT_AUDIT.txt`](PROJECT_AUDIT.txt).
+
+### Changed
+- Удалён неиспользуемый порт `StreamUrlProvider`.
+- Документация CLI, архитектуры и UML обновлены под preflight и общий task-класс.
+
+### Tests
+- `ExternalToolsPreflightTest`, `LoggingConfiguratorTest`, `WindowsCommandResolverTest`,
+  `ApplicationFactoryTest`; расширены `MainTest` и `AppConfigTest`.
 
 ## [1.0.0] - 2026-10-20
 

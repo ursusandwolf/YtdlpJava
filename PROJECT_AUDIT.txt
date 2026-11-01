@@ -1,0 +1,199 @@
+================================================================================
+YtdlpJava — архітектурний код-ревʼю / аудит (2026-11-01)
+Вердикт: ⚠️ можна підтримувати; після цієї сесії DRY-правки вже внесені
+================================================================================
+
+Кратко
+------
+Проєкт на стадії POST-RELEASE / Maintenance (v1.0.0 на main). Архітектура
+адекватна CLI-інструменту: Ports & Adapters + Factory + Strategy. Головний ризик —
+зовнішні yt-dlp/ffmpeg/YouTube, не внутрішній код. У цій сесії обʼєднано
+дублікати Audio/Video/Metadata у DownloadAndDispatchTask і прибрано мертвий
+StreamUrlProvider. mvn test: 123 passed, 0 failed.
+
+## Вердикт (code-reviewer)
+
+Статус спринту: не «ранній спринт», а після релізу 1.0.0.
+Фаза: Maintenance + backlog v1.1 (Telegram через CLI, жорсткий 720p, інші
+формати субтитрів, preflight зовнішніх інструментів).
+
+### 🔴 Blocker
+Немає.
+
+### 🟠 Major
+Немає блокуючих. Зовнішні інтеграції нестабільні за природою (YouTube/yt-dlp) —
+це обмеження продукту, не баг релізу.
+
+### 🟡 Minor
+1. Fat-інтерфейс Downloader усе ще широкий (зручно для CLI, слабше ISP).
+2. TelegramResultHandler не підключений з CLI (лише програмно) — очікувано.
+3. Емодзі в логах ScreenshotTask — шум у логах.
+
+### 💡 Idea
+- Preflight: перевірка yt-dlp/ffmpeg/node у PATH перед роботою.
+- ArchUnit-тести на напрямок залежностей пакетів.
+- Wrapper Maven (mvnw) у репо — локально mvn не був у PATH.
+
+### 👍 Удачно
+- DownloadWorkspace ізолює завантаження.
+- ResultDispatcher + CREATE_NEW для колізій імен.
+- ProcessExecutor з virtual thread + єдиний deadline.
+- Вузькі порти model.* і Composition Root у ApplicationFactory.
+
+================================================================================
+СТАДІЯ СПРИНТІВ
+================================================================================
+| Етап              | Стан        |
+|-------------------|-------------|
+| Discovery / MVP   | ✅ завершено |
+| Feature complete  | ✅ 5 задач   |
+| Hardening/ревʼю   | ✅ 1.0.0     |
+| Release           | ✅ GitHub    |
+| Maintenance       | ◀ поточний  |
+| v1.1 backlog      | заплановано |
+
+================================================================================
+АДЕКВАТНІСТЬ АРХІТЕКТУРИ
+================================================================================
+Тип: модульний моноліт CLI (Maven, Java 21).
+Стиль: Hexagonal / Ports & Adapters (полегшений).
+
+Плюси:
+- cli → config → core/task → model(ports) ← infrastructure
+- Задачі залежать від портів, не від yt-dlp напряму
+- Composition Root: ApplicationFactory
+- Зовнішні процеси ізольовані в ProcessExecutor
+
+Мінуси / компроміси:
+- Downloader = кілька портів в одному (практично для фабрики)
+- subtitle + processor трохи перетинаються (історично)
+- Немає DI-контейнера — для CLI це правильно (KISS)
+
+Висновок: для CLI з 5 сценаріями архітектура ADEQUATE, не over-engineered.
+
+================================================================================
+ПАТЕРНИ (що / навіщо / де)
+================================================================================
+| Патерн              | Біль                            | Де |
+|---------------------|---------------------------------|----|
+| Ports & Adapters    | привʼязка до yt-dlp/ffmpeg      | model.* + infrastructure.* |
+| Factory             | збірка графа залежностей        | ApplicationFactory |
+| Strategy / Template | fallback клієнтів YouTube       | AbstractYoutubeService |
+| Strategy (task)     | різні типи CLI (-t)             | VideoTask impl |
+| Facade              | оркестрація плейлиста           | YtdlManager |
+| Chain / Composite   | кілька обробників результату    | ResultDispatcher + TaskResultHandler |
+| Template Method     | спільний download+dispatch      | DownloadAndDispatchTask |
+| Adapter             | Telegram API                    | TelegramResultHandler |
+| RAII / try-with     | temp dirs, Lucene analyzers     | DownloadWorkspace, ApplicationFactory |
+
+================================================================================
+ЩО ЗРОБЛЕНО В ЦІЙ СЕСІЇ (оптимізація без винаходів)
+================================================================================
+1. AudioTask + VideoDownloadTask + MetadataTask → DownloadAndDispatchTask
+2. Видалено мертвий StreamUrlProvider + getStreamUrl (ніхто не викликав)
+3. Додано ApplicationFactoryTest (3 тести)
+4. Оновлено docs/UML.md, docs/DOCUMENTATION.md
+5. Створено AI_MAP.md, docs/LEARNING.md, цей файл
+
+================================================================================
+ДУБЛІ / МЕРТВИЙ / НЕРОБОЧИЙ КОД (аудит)
+================================================================================
+Було:
+- 3 майже ідентичні задачі (audio/video/metadata) → ВИПРАВЛЕНО
+- StreamUrlProvider без викликів → ВИДАЛЕНО
+
+Залишилось свідомо:
+- com.ytdlpjava.Main делегує в cli.Main (для IDE/документації)
+- Двохаргументний TaskResultHandler.handle — сумісність
+- Telegram не в CLI — за дизайном
+
+Неробочого коду (що ламає збірку) не знайдено. mvn test зелений.
+
+================================================================================
+ТЕСТИ
+================================================================================
+Запуск: mvn test (JDK 21 Corretto), 2026-11-01
+Результат: 123 tests, 0 failures, 0 errors, 0 skipped
+
+Покриває: CLI коди виходу, manager/playlist, process timeout, downloaders
+(підміна процесу), імена файлів, субтитри/ключові слова, isolation workspace,
+Telegram mock, factory wiring.
+
+Не покриває (свідомо / зовнішнє):
+- реальний YouTube live (див. docs/INTEGRATION_CHECKS.md)
+- реальний Telegram send
+- усі fallback-стратегії yt-dlp у мережі
+
+================================================================================
+UML (псевдографіка класів / інтерфейсів)
+================================================================================
+
+                    +------------------+
+                    |   cli.Main       |
+                    +--------+---------+
+                             |
+                             v
+              +--------------+--------------+
+              |     ApplicationFactory      |
+              |  (Composition Root, close)  |
+              +------+-------------+--------+
+                     |             |
+         +-----------+             +------------+
+         v                                      v
+  <<port>> Downloader                    <<port>> VideoTask
+  + MediaDownloader                      + SubtitleTask
+  + TitleProvider                        + DownloadAndDispatchTask
+  + DurationProvider                       (audio|video|metadata)
+  + PlaylistProvider                     + ScreenshotTask
+         ^                                      |
+         |                                      v
+  AbstractYoutubeService               ResultDispatcher
+   + VideoDownloader                   -> FileResultHandler
+   + AudioDownloader                   -> TelegramResultHandler (opt)
+   + SubtitleDownloader
+   + MetadataDownloader
+
+  YtdlManager ----uses----> VideoTask + PlaylistProvider
+       |
+       +-- playlist dir via FilenameProvider
+       +-- aggregate failures -> YtdlManagerException
+
+  Subtitle pipeline:
+  VTT -> SubtitleFileProcessor -> SubtitleCleaner(TextProcessor)
+      -> Parser -> Assembler -> MarkdownFormatter
+      -> KeywordExtractor/Highlighter -> .md
+
+================================================================================
+ПОТОК ДАНИХ (один URL)
+================================================================================
+CLI args -> AppConfig.validate -> LoggingConfigurator -> preflight
+  -> Factory -> YtdlManager.process(url)
+       -> PlaylistProvider.getPlaylistUrls
+       -> for each: VideoTask.execute
+            -> DownloadWorkspace.download
+            -> [optional] ContentProcessor
+            -> ResultDispatcher -> FileResultHandler
+            -> cleanup temp
+  -> exit 0|1|2
+
+================================================================================
+ЧОГО НЕ ПЕРЕВІРЕНО
+================================================================================
+- Реальний мережевий прогін yt-dlp у цьому середовищі
+- Security audit залежностей (CVE)
+- Навантажувальні тести
+
+================================================================================
+РЕКОМЕНДАЦІЯ
+================================================================================
+Підтримувати as-is. Preflight + логування зроблено (2026-11-01).
+Наступні кроки для v1.1:
+1) CLI/env для Telegram
+2) Жорсткий 720p на всі fallback
+3) Субтитри не лише VTT / mvnw
+
+Карта для ШІ: AI_MAP.md
+Навчання по коду: docs/LEARNING.md
+Архітектура: docs/DOCUMENTATION.md
+UML Mermaid: docs/UML.md
+================================================================================

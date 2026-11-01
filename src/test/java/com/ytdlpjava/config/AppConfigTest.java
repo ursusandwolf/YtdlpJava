@@ -3,6 +3,7 @@ package com.ytdlpjava.config;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AppConfigTest {
     @Test
@@ -33,5 +34,20 @@ class AppConfigTest {
         config.configureOutputDir();
 
         assertEquals("custom-dir", config.getOutputDir());
+    }
+
+    @Test
+    void normalizesValidLogLevel() {
+        AppConfig config = new AppConfig();
+        config.setLogLevel("debug");
+        config.validate();
+        assertEquals("DEBUG", config.getLogLevel());
+    }
+
+    @Test
+    void rejectsUnknownLogLevel() {
+        AppConfig config = new AppConfig();
+        config.setLogLevel("loud");
+        assertThrows(IllegalArgumentException.class, config::validate);
     }
 }

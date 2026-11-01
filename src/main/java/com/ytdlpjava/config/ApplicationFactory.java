@@ -1,5 +1,7 @@
 package com.ytdlpjava.config;
 
+import com.ytdlpjava.core.ExternalToolsCheck;
+import com.ytdlpjava.core.ExternalToolsPreflight;
 import com.ytdlpjava.core.ProcessExecutor;
 import com.ytdlpjava.infrastructure.ffmpeg.FfmpegFrameExtractor;
 import com.ytdlpjava.infrastructure.filesystem.FilesystemTemporaryFileManager;
@@ -19,13 +21,11 @@ import com.ytdlpjava.processor.MarkdownFormatter;
 import com.ytdlpjava.processor.SubtitleCleaner;
 import com.ytdlpjava.subtitle.config.SubtitleConfig;
 import com.ytdlpjava.subtitle.processor.SubtitleParser;
-import com.ytdlpjava.task.AudioTask;
+import com.ytdlpjava.task.DownloadAndDispatchTask;
 import com.ytdlpjava.task.FileResultHandler;
-import com.ytdlpjava.task.MetadataTask;
 import com.ytdlpjava.task.ScreenshotTask;
 import com.ytdlpjava.task.SubtitleTask;
 import com.ytdlpjava.task.TaskResultHandler;
-import com.ytdlpjava.task.VideoDownloadTask;
 import com.ytdlpjava.util.DictionaryLoader;
 import com.ytdlpjava.util.FilenameGenerator;
 import com.ytdlpjava.util.LemmatizerService;
@@ -55,6 +55,10 @@ public class ApplicationFactory implements AutoCloseable {
         return new ProcessExecutor();
     }
 
+    public ExternalToolsCheck createExternalToolsPreflight(ProcessExecutor executor) {
+        return new ExternalToolsPreflight(executor);
+    }
+
     public FilenameProvider createFilenameProvider() {
         return new FilenameGenerator();
     }
@@ -82,10 +86,10 @@ public class ApplicationFactory implements AutoCloseable {
         FrameExtractor frameExtractor = createFrameExtractor(executor);
 
         return switch (config.getType().toLowerCase()) {
-            case "audio" -> new AudioTask(downloader, downloader, filenameProvider, temporaryFileManager, handlers);
-            case "video" -> new VideoDownloadTask(downloader, downloader, filenameProvider, temporaryFileManager, handlers);
+            case "audio" -> new DownloadAndDispatchTask(downloader, downloader, filenameProvider, temporaryFileManager, handlers, "audio");
+            case "video" -> new DownloadAndDispatchTask(downloader, downloader, filenameProvider, temporaryFileManager, handlers, "video");
             case "screenshot" -> new ScreenshotTask(downloader, downloader, downloader, filenameProvider, frameExtractor, temporaryFileManager, config.getInterval(), handlers);
-            case "metadata" -> new MetadataTask(downloader, downloader, filenameProvider, temporaryFileManager, handlers);
+            case "metadata" -> new DownloadAndDispatchTask(downloader, downloader, filenameProvider, temporaryFileManager, handlers, "metadata");
             case "sub" -> new SubtitleTask(downloader, downloader, createSubtitleProcessor(config.getLang()), filenameProvider, temporaryFileManager, handlers);
             default -> throw new IllegalArgumentException("Unknown type: " + config.getType());
         };

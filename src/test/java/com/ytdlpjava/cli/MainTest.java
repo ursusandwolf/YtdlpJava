@@ -2,6 +2,7 @@ package com.ytdlpjava.cli;
 
 import com.ytdlpjava.config.AppConfig;
 import com.ytdlpjava.config.ApplicationFactory;
+import com.ytdlpjava.core.ExternalToolsCheck;
 import com.ytdlpjava.core.ProcessExecutor;
 import com.ytdlpjava.model.Downloader;
 import com.ytdlpjava.model.FilenameProvider;
@@ -22,7 +23,13 @@ class MainTest {
         final Downloader downloader = mock(Downloader.class);
         final VideoTask task = mock(VideoTask.class);
         boolean taskCreated;
+        boolean preflightCalled;
         LemmatizerService service;
+
+        @Override
+        public ExternalToolsCheck createExternalToolsPreflight(ProcessExecutor executor) {
+            return taskType -> preflightCalled = true;
+        }
 
         @Override
         public Downloader createDownloader(AppConfig config, ProcessExecutor executor) { return downloader; }
@@ -56,6 +63,22 @@ class MainTest {
         Factory factory = new Factory();
         assertEquals(0, Main.run(new String[]{"--help"}, factory));
         assertFalse(factory.taskCreated);
+        assertFalse(factory.preflightCalled);
+    }
+
+    @Test
+    void preflightFailureReturnsTwoBeforeTaskStarts() {
+        Factory factory = new Factory() {
+            @Override
+            public ExternalToolsCheck createExternalToolsPreflight(ProcessExecutor executor) {
+                return taskType -> {
+                    throw new IllegalArgumentException("yt-dlp is required but was not found");
+                };
+            }
+        };
+        assertEquals(2, Main.run(new String[]{"video", "-o", tempDir.toString()}, factory));
+        assertFalse(factory.taskCreated);
+        verifyNoInteractions(factory.downloader, factory.task);
     }
 
     @Test

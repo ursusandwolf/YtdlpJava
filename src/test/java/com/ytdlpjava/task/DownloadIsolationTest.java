@@ -23,9 +23,7 @@ class DownloadIsolationTest {
         var files = new FilesystemTemporaryFileManager();
         var handlers = List.of(handler);
         return List.of(
-                new VideoDownloadTask(downloader, url -> "same", names, files, handlers),
-                new AudioTask(downloader, url -> "same", names, files, handlers),
-                new MetadataTask(downloader, url -> "same", names, files, handlers),
+                new DownloadAndDispatchTask(downloader, url -> "same", names, files, handlers, "media"),
                 new SubtitleTask(downloader, url -> "same", path -> Files.readString(path), names, files, handlers),
                 new ScreenshotTask(downloader, url -> "same", url -> 1, names,
                         (video, timestamp, image) -> Files.writeString(image, "frame"), files, 60, handlers));

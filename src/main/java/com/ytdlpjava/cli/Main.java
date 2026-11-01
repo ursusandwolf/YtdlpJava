@@ -47,8 +47,15 @@ public class Main {
                 jc.usage();
                 return 2;
             }
+            LoggingConfigurator.apply(config);
             config.configureOutputDir();
             ProcessExecutor executor = factory.createProcessExecutor();
+            try {
+                factory.createExternalToolsPreflight(executor).verify(config.getType());
+            } catch (IllegalArgumentException e) {
+                System.err.println(e.getMessage());
+                return 2;
+            }
             Downloader downloader = factory.createDownloader(config, executor);
             VideoTask task = factory.createTask(config, downloader, factory.createFilenameProvider(), executor);
             YtdlManager manager = new YtdlManager(task, downloader);

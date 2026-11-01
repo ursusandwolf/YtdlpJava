@@ -36,10 +36,8 @@ classDiagram
         <<interface>>
     }
     class SubtitleTask
-    class AudioTask
-    class VideoDownloadTask
+    class DownloadAndDispatchTask
     class ScreenshotTask
-    class MetadataTask
     class ResultDispatcher {
         +dispatch(handlers, title, file, outputDir) void
     }
@@ -66,24 +64,21 @@ classDiagram
     YtdlManager --> PlaylistProvider : получает URL
     PlaylistProvider <|-- Downloader
     VideoTask <|.. SubtitleTask
-    VideoTask <|.. AudioTask
-    VideoTask <|.. VideoDownloadTask
+    VideoTask <|.. DownloadAndDispatchTask
     VideoTask <|.. ScreenshotTask
-    VideoTask <|.. MetadataTask
     SubtitleTask ..> ResultDispatcher
-    AudioTask ..> ResultDispatcher
-    VideoDownloadTask ..> ResultDispatcher
+    DownloadAndDispatchTask ..> ResultDispatcher
     ScreenshotTask ..> ResultDispatcher
-    MetadataTask ..> ResultDispatcher
     ResultDispatcher --> TaskResultHandler
     TaskResultHandler <|.. FileResultHandler
     TaskResultHandler <|.. TelegramResultHandler
-    VideoDownloadTask --> TemporaryFileManager : очищает источник
+    DownloadAndDispatchTask --> TemporaryFileManager : очищает источник
 ```
 
 Сигнатуры фабрики сокращены до имени и возвращаемого типа.
 `Downloader` объединяет `PlaylistProvider` и другие узкие порты загрузки/метаданных.
-Все пять задач используют временные файлы и общий dispatcher.
+`DownloadAndDispatchTask` покрывает audio/video/metadata; остальные две задачи — отдельные.
+Все задачи используют временные файлы и общий dispatcher.
 Фабрика создаёт анализаторы лениво и закрывается CLI после всей партии URL.
 
 ## Плейлист и итоговый статус

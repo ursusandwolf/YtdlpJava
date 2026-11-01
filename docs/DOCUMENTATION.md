@@ -23,9 +23,11 @@
 Исполняемый JAR запускает `cli.Main` напрямую. `ShutdownCancellation` регистрирует
 shutdown hook: при Ctrl+C прерывает основной поток и ждёт до 10 секунд, чтобы
 задачи закрыли ресурсы и удалили временные файлы. При обычном завершении hook удаляется.
-`Downloader` объединяет узкие порты, включая `MediaDownloader`, `TitleProvider`,
-`DurationProvider`, `PlaylistProvider` и `StreamUrlProvider`.
+`Downloader` объединяет узкие порты: `MediaDownloader`, `TitleProvider`,
+`DurationProvider` и `PlaylistProvider`.
 Задачи получают нужные порты через конструкторы.
+`audio` / `video` / `metadata` используют общий `DownloadAndDispatchTask`;
+`sub` и `screenshot` остаются отдельными реализациями.
 `FilenameGenerator` создаёт переносимые имена: зарезервированные Windows-имена
 получают префикс `_`, имена из точек заменяются на `video`, конец имени очищается
 от точек и пробелов. `YtdlManager` дополнительно отвергает имена каталогов,
@@ -34,10 +36,12 @@ shutdown hook: при Ctrl+C прерывает основной поток и �
 ## Запуск и результаты
 
 1. `cli.Main` разбирает и проверяет параметры; при отсутствии URL запускает мастер.
-2. `AppConfig.configureOutputDir()` выбирает каталог для типа задачи.
-3. `ApplicationFactory` создаёт загрузчик, задачу и `FileResultHandler`.
-4. `YtdlManager` получает список URL и последовательно вызывает `VideoTask.execute`.
-5. Задача создаёт результат, вызывает `ResultDispatcher` и очищает временные файлы.
+2. `LoggingConfigurator` применяет `-v` / `--log-level` (по умолчанию INFO из `logback.xml`).
+3. `AppConfig.configureOutputDir()` выбирает каталог для типа задачи.
+4. `ExternalToolsPreflight` проверяет `yt-dlp`, `node` и при необходимости `ffmpeg`.
+5. `ApplicationFactory` создаёт загрузчик, задачу и `FileResultHandler`.
+6. `YtdlManager` получает список URL и последовательно вызывает `VideoTask.execute`.
+7. Задача создаёт результат, вызывает `ResultDispatcher` и очищает временные файлы.
 
 Задачи передают эффективный каталог плейлиста в `TaskResultHandler.handle(title, file, outputDir)`.
 Двухаргументный метод сохранён для совместимости. Обработчики обязаны оставлять исходный

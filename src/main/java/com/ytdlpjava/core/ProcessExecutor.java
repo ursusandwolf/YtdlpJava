@@ -23,8 +23,9 @@ public class ProcessExecutor {
             throws IOException, InterruptedException {
         if (timeout <= 0) throw new IllegalArgumentException("Process timeout must be positive");
         long deadline = System.nanoTime() + unit.toNanos(timeout);
-        log.debug("Executing command: {}", String.join(" ", command));
-        Process process = new ProcessBuilder(List.copyOf(command)).redirectErrorStream(true).start();
+        List<String> resolved = WindowsCommandResolver.resolve(command);
+        log.debug("Executing command: {}", String.join(" ", resolved));
+        Process process = new ProcessBuilder(resolved).redirectErrorStream(true).start();
         FutureTask<String> reader = new FutureTask<>(() -> readOutput(process));
         Thread.ofVirtual().name("process-output").start(reader);
         try {
