@@ -139,9 +139,13 @@ java -jar ytdlp-java-1.0.0.jar "https://youtu.be/FIRST_ID" "https://youtu.be/SEC
 | `--format` | `opus`, `mp3`, `m4a` | `opus` |
 | `--quality` | Целое число: `0` — лучшее, `9` — худшее | `0` |
 | `-i`, `--interval` | Положительный интервал кадров, секунды | `60` |
+| `--max-height` | Макс. высота видео (px); `0` = без лимита | `720` |
 | `-v`, `--verbose` | Подробные логи (DEBUG) | выкл. |
 | `--log-level` | `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE` | `INFO` |
 | `-h`, `--help` | Справка | — |
+
+Для `-t video` / `screenshot` по умолчанию все резервные форматы ограничены 720p.
+Выше: `--max-height 1080`. Без лимита: `--max-height 0`.
 
 Перед загрузкой CLI проверяет внешние инструменты в `PATH`:
 `yt-dlp` и `node` всегда; `ffmpeg` — для `audio`, `video` и `screenshot`.

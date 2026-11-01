@@ -50,4 +50,24 @@ class AppConfigTest {
         config.setLogLevel("loud");
         assertThrows(IllegalArgumentException.class, config::validate);
     }
+
+    @Test
+    void defaultMaxHeightIs720() {
+        assertEquals(720, new AppConfig().getMaxHeight());
+    }
+
+    @Test
+    void rejectsNegativeMaxHeight() {
+        AppConfig config = new AppConfig();
+        config.setMaxHeight(-1);
+        assertThrows(IllegalArgumentException.class, config::validate);
+    }
+
+    @Test
+    void allowsUnlimitedMaxHeight() {
+        AppConfig config = new AppConfig();
+        config.setMaxHeight(0);
+        config.validate();
+        assertEquals(0, config.getMaxHeight());
+    }
 }

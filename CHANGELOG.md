@@ -15,14 +15,16 @@
 - `WindowsCommandResolver`: на Windows находятся `.cmd`/`.bat` shim через PATH+PATHEXT.
 - Карта для ШІ [`AI_MAP.md`](AI_MAP.md), обучение [`docs/LEARNING.md`](docs/LEARNING.md),
   аудит [`PROJECT_AUDIT.txt`](PROJECT_AUDIT.txt).
+- `--max-height` для видео (по умолчанию `720`; `0` = без ограничения высоты).
 
 ### Changed
 - Удалён неиспользуемый порт `StreamUrlProvider`.
 - Документация CLI, архитектуры и UML обновлены под preflight и общий task-класс.
+- Селектор видео больше не падает в неограниченный `/best` при лимите высоты.
 
 ### Tests
 - `ExternalToolsPreflightTest`, `LoggingConfiguratorTest`, `WindowsCommandResolverTest`,
-  `ApplicationFactoryTest`; расширены `MainTest` и `AppConfigTest`.
+  `ApplicationFactoryTest`, `VideoDownloaderTest`; расширены `MainTest` и `AppConfigTest`.
 
 ## [1.0.0] - 2026-10-20
 

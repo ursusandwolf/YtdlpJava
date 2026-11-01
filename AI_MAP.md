@@ -64,6 +64,7 @@ processor / subtitle / util  ← використовуються task і factor
 |---|---|
 | Новий тип задачі | `task/*` + case у `ApplicationFactory` + `AppConfig` |
 | Новий формат завантаження | `infrastructure/ytdlp/*` extends `AbstractYoutubeService` |
+| Ліміт висоти відео | `AppConfig.maxHeight` → `VideoDownloader.formatSelector` (default 720, `0` = unlimited) |
 | Новий обробник результату | `TaskResultHandler` + список у factory |
 | Правила імен | тільки `FilenameGenerator` |
 | Таймаут/процеси | тільки `ProcessExecutor` |

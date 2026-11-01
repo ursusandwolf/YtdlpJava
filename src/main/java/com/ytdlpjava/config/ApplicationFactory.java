@@ -76,7 +76,7 @@ public class ApplicationFactory implements AutoCloseable {
             case "audio" -> new AudioDownloader(executor, config.getAudioFormat(), config.getAudioQuality());
             case "sub" -> new SubtitleDownloader(executor, config.getLang());
             case "metadata" -> new MetadataDownloader(executor);
-            default -> new VideoDownloader(executor);
+            default -> new VideoDownloader(executor, config.getMaxHeight());
         };
     }
 

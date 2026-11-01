@@ -59,6 +59,16 @@ public class InteractivePromptService {
                 System.out.print("🎵 Введите формат (opus, mp3, m4a) [opus]: ");
                 String fmt = scanner.nextLine().trim();
                 if (!fmt.isEmpty()) config.setAudioFormat(fmt);
+            } else if ("video".equalsIgnoreCase(config.getType())) {
+                System.out.print("Макс. высота видео в пикселях (0 = без лимита) [720]: ");
+                String height = scanner.nextLine().trim();
+                if (!height.isEmpty()) {
+                    try {
+                        config.setMaxHeight(Integer.parseInt(height));
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("max-height must be an integer >= 0", e);
+                    }
+                }
             }
         }
     }

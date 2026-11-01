@@ -36,6 +36,9 @@ public class AppConfig {
     @Parameter(names = {"-i", "--interval"}, description = "Интервал между скриншотами в секундах (по умолчанию: 60)")
     private int interval = 60;
 
+    @Parameter(names = {"--max-height"}, description = "Макс. высота видео в пикселях (по умолчанию: 720; 0 = без ограничения)")
+    private int maxHeight = 720;
+
     @Parameter(names = {"-h", "--help"}, help = true, description = "Показать справку")
     private boolean help;
 
@@ -59,6 +62,7 @@ public class AppConfig {
             throw new IllegalArgumentException("Audio quality must be an integer from 0 to 9");
         }
         if (interval <= 0) throw new IllegalArgumentException("Screenshot interval must be positive");
+        if (maxHeight < 0) throw new IllegalArgumentException("max-height must be >= 0 (0 = unlimited)");
         if (outputDir == null || outputDir.isBlank()) {
             throw new IllegalArgumentException("Output directory must not be blank");
         }
