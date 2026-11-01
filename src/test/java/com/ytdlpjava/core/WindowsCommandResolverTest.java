@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WindowsCommandResolverTest {
     @TempDir Path tempDir;
@@ -23,8 +22,17 @@ class WindowsCommandResolverTest {
                 ".COM;.EXE;.BAT;.CMD",
                 true);
         assertEquals(2, resolved.size());
-        assertTrue(resolved.getFirst().equalsIgnoreCase(shim.toAbsolutePath().normalize().toString()));
+        assertEquals(shim.toAbsolutePath().normalize(), Path.of(resolved.getFirst()).normalize());
         assertEquals("--version", resolved.get(1));
+    }
+
+    @Test
+    void resolvesUppercasePathextAgainstLowercaseShim() throws Exception {
+        Path shim = tempDir.resolve("tool.cmd");
+        Files.writeString(shim, "@echo demo");
+        List<String> resolved = WindowsCommandResolver.resolve(
+                List.of("tool"), tempDir.toString(), ".CMD", true);
+        assertEquals(shim.toAbsolutePath().normalize(), Path.of(resolved.getFirst()).normalize());
     }
 
     @Test

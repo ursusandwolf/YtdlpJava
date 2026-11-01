@@ -45,9 +45,21 @@ final class WindowsCommandResolver {
             if (dir.isBlank()) continue;
             Path directory = Path.of(dir.trim());
             for (String extension : extensions) {
-                Path candidate = directory.resolve(program + extension);
-                if (Files.isRegularFile(candidate)) return candidate;
+                Path candidate = findRegularFile(directory, program, extension);
+                if (candidate != null) return candidate;
             }
+        }
+        return null;
+    }
+
+    private static Path findRegularFile(Path directory, String program, String extension) {
+        Path exact = directory.resolve(program + extension);
+        if (Files.isRegularFile(exact)) return exact;
+        // PATHEXT is usually uppercase (.CMD); shims are often lowercase on case-sensitive FS.
+        String lowerExtension = extension.toLowerCase(Locale.ROOT);
+        if (!lowerExtension.equals(extension)) {
+            Path lower = directory.resolve(program + lowerExtension);
+            if (Files.isRegularFile(lower)) return lower;
         }
         return null;
     }
